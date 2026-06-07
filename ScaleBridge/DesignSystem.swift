@@ -135,7 +135,7 @@ enum BodyMetric: String, CaseIterable, Identifiable {
         case .water:   "drop"
         case .bmi:     "ruler"
         case .lean:    "figure.arms.open"
-        case .bone:    "skeleton"
+        case .bone:    "figure.skeleton"
         }
     }
 
@@ -151,6 +151,13 @@ enum BodyMetric: String, CaseIterable, Identifiable {
         switch self {
         case .weight, .lean: 1
         case .bodyFat, .muscle, .water, .bone, .bmi: 1
+        }
+    }
+
+    var lowerIsBetter: Bool {
+        switch self {
+        case .weight, .bodyFat, .bmi: return true
+        case .muscle, .water, .lean, .bone: return false
         }
     }
 }

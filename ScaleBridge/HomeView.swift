@@ -22,8 +22,8 @@ struct HomeView: View {
     @Query(sort: \UserProfile.createdAt) private var profiles: [UserProfile]
     @AppStorage("activeUserID") private var activeUserIDString: String = ""
 
-    @State private var showingWeighIn = false
-    @State private var selectedWeighIn: WeighIn? = nil
+    @State private var showingWeighIn  = false
+    @State private var selectedMetric: BodyMetric? = nil
 
     // MARK: Derived
 
@@ -67,19 +67,17 @@ struct HomeView: View {
             }
             .background(DS.Palette.ground.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(item: $selectedMetric) { metric in
+                if let profile = activeProfile {
+                    MetricDetailView(metric: metric, profile: profile)
+                }
+            }
         }
         .task { try? await healthKit.requestAuthorization() }
         .onChange(of: ble.status) { _, newStatus in
             if case .done = newStatus, let m = ble.lastMeasurement {
                 persistMeasurement(m)
             }
-        }
-        .sheet(item: $selectedWeighIn) { w in
-            ReadingDetailSheet(
-                weighIn: w,
-                previousWeighIn: sortedWeighIns.first(where: { $0.date < w.date })
-            )
-            .presentationDetents([.large])
         }
         .fullScreenCover(isPresented: $showingWeighIn) {
             WeighInFlowView(
@@ -169,9 +167,7 @@ struct HomeView: View {
                 Spacer()
 
                 if let w = latestWeighIn {
-                    Button {
-                        selectedWeighIn = w
-                    } label: {
+                    Button { selectedMetric = .weight } label: {
                         HStack(spacing: DS.Space.xs) {
                             Text(w.date, format: .dateTime.hour().minute())
                                 .font(DS.Typeface.footnote)
@@ -343,6 +339,8 @@ struct HomeView: View {
         .padding(14)
         .background(DS.Palette.card,
                     in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .onTapGesture { selectedMetric = metric }
     }
 
     // MARK: - Sparkline
