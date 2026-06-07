@@ -4,14 +4,14 @@ import SwiftUI
 //
 // Stock iOS system colors picked to match the Apple Health visual register.
 // Each accent is paired with the body-comp metric it represents (see BodyMetric).
-// The ground / card pairing is systemGroupedBackground + systemBackground,
-// so cards float over a cool gray field exactly like Health does.
+// The ground / card pairing is systemGroupedBackground + secondarySystemGroupedBackground,
+// so cards float over a cool gray field in both light and dark mode.
 
 enum DS {
 
     enum Palette {
         static let ground = Color(.systemGroupedBackground)   // #F2F2F7
-        static let card   = Color(.systemBackground)          // #FFFFFF in light mode
+        static let card   = Color(.secondarySystemGroupedBackground) // #FFF light / #2C2C2E dark
         static let label          = Color(.label)             // #000
         static let secondaryLabel = Color(.secondaryLabel)    // ~#8E8E93
         static let tertiaryLabel  = Color(.tertiaryLabel)

@@ -12,6 +12,8 @@
 		AA000000000000000000010CA /* HistoryTabWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000CA /* HistoryTabWrapper.swift */; };
 		AA000000000000000000010DA /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000DA /* SettingsTabView.swift */; };
 		AA000000000000000000010EA /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000EA /* HomeView.swift */; };
+		AA000000000000000000010FA /* WeighInFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000FA /* WeighInFlowView.swift */; };
+		AA000000000000000000010GA /* ReadingDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000GA /* ReadingDetailSheet.swift */; };
 		AA0000000000000000000101A /* HealthKitWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000001A /* HealthKitWriter.swift */; };
 		AA0000000000000000000102A /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002A /* HistoryView.swift */; };
 		AA0000000000000000000103A /* ProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000003A /* ProfilesView.swift */; };
@@ -33,6 +35,8 @@
 		AA000000000000000000000CA /* HistoryTabWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTabWrapper.swift; sourceTree = "<group>"; };
 		AA000000000000000000000DA /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
 		AA000000000000000000000EA /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		AA000000000000000000000FA /* WeighInFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighInFlowView.swift; sourceTree = "<group>"; };
+		AA000000000000000000000GA /* ReadingDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingDetailSheet.swift; sourceTree = "<group>"; };
 		AA0000000000000000000001A /* HealthKitWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitWriter.swift; sourceTree = "<group>"; };
 		AA0000000000000000000002A /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		AA0000000000000000000003A /* ProfilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilesView.swift; sourceTree = "<group>"; };
@@ -99,6 +103,8 @@
 				AA000000000000000000000CA /* HistoryTabWrapper.swift */,
 				AA000000000000000000000DA /* SettingsTabView.swift */,
 				AA000000000000000000000EA /* HomeView.swift */,
+				AA000000000000000000000FA /* WeighInFlowView.swift */,
+				AA000000000000000000000GA /* ReadingDetailSheet.swift */,
 				AA0000000000000000000001A /* HealthKitWriter.swift */,
 				AA0000000000000000000002A /* HistoryView.swift */,
 				AA0000000000000000000003A /* ProfilesView.swift */,
@@ -180,6 +186,8 @@
 				AA000000000000000000010CA /* HistoryTabWrapper.swift in Sources */,
 				AA000000000000000000010DA /* SettingsTabView.swift in Sources */,
 				AA000000000000000000010EA /* HomeView.swift in Sources */,
+				AA000000000000000000010FA /* WeighInFlowView.swift in Sources */,
+				AA000000000000000000010GA /* ReadingDetailSheet.swift in Sources */,
 				AA0000000000000000000101A /* HealthKitWriter.swift in Sources */,
 				AA0000000000000000000102A /* HistoryView.swift in Sources */,
 				AA0000000000000000000103A /* ProfilesView.swift in Sources */,

@@ -23,6 +23,7 @@ struct HomeView: View {
     @AppStorage("activeUserID") private var activeUserIDString: String = ""
 
     @State private var showingWeighIn = false
+    @State private var selectedWeighIn: WeighIn? = nil
 
     // MARK: Derived
 
@@ -72,6 +73,13 @@ struct HomeView: View {
             if case .done = newStatus, let m = ble.lastMeasurement {
                 persistMeasurement(m)
             }
+        }
+        .sheet(item: $selectedWeighIn) { w in
+            ReadingDetailSheet(
+                weighIn: w,
+                previousWeighIn: sortedWeighIns.first(where: { $0.date < w.date })
+            )
+            .presentationDetents([.large])
         }
         .fullScreenCover(isPresented: $showingWeighIn) {
             WeighInFlowView(
@@ -161,12 +169,20 @@ struct HomeView: View {
                 Spacer()
 
                 if let w = latestWeighIn {
-                    Text(w.date, format: .dateTime.hour().minute())
-                        .font(DS.Typeface.footnote)
-                        .foregroundStyle(DS.Palette.secondaryLabel)
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(DS.Palette.secondaryLabel)
+                    Button {
+                        selectedWeighIn = w
+                    } label: {
+                        HStack(spacing: DS.Space.xs) {
+                            Text(w.date, format: .dateTime.hour().minute())
+                                .font(DS.Typeface.footnote)
+                                .foregroundStyle(DS.Palette.secondaryLabel)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(DS.Palette.secondaryLabel)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
             }
 
