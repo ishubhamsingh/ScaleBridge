@@ -22,6 +22,8 @@ struct HomeView: View {
     @Query(sort: \UserProfile.createdAt) private var profiles: [UserProfile]
     @AppStorage("activeUserID") private var activeUserIDString: String = ""
 
+    @State private var showingWeighIn = false
+
     // MARK: Derived
 
     private var activeProfile: UserProfile? {
@@ -71,6 +73,26 @@ struct HomeView: View {
                 persistMeasurement(m)
             }
         }
+        .fullScreenCover(isPresented: $showingWeighIn) {
+            WeighInFlowView(
+                profile: activeProfile,
+                previousWeighIn: previousWeighIn,
+                onDone: {
+                    showingWeighIn = false
+                    ble.stop()
+                },
+                onWeighAgain: {
+                    ble.stop()
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(300))
+                        guard let profile = activeProfile else { return }
+                        ble.user = profile.scaleUser
+                        ble.start()
+                    }
+                }
+            )
+            .environmentObject(ble)
+        }
     }
 
     // MARK: - Nav Header
@@ -112,13 +134,14 @@ struct HomeView: View {
         default: return false
         }
     }
-    private var bleLabel: String { bleIsActive ? "Stop" : "Weigh in" }
-    private var bleIcon: String  { bleIsActive ? "stop.circle" : "scalemass" }
+    private var bleLabel: String { "Weigh in" }
+    private var bleIcon: String  { "scalemass" }
 
     private func weighInTapped() {
         guard let profile = activeProfile else { return }
-        if bleIsActive { ble.stop() }
-        else { ble.user = profile.scaleUser; ble.start() }
+        ble.user = profile.scaleUser
+        ble.start()
+        showingWeighIn = true
     }
 
     // MARK: - Weight Card
