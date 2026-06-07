@@ -1,0 +1,31 @@
+# Xcode
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+
+# Build products
+build/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+*.resolved
+
+# CocoaPods
+Pods/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Instruments
+timeline.xctimeline
+playground.xcworkspace

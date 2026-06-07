@@ -1,0 +1,316 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA000000000000000000010AA /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000AA /* DesignSystem.swift */; };
+		AA000000000000000000010BA /* DesignComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000BA /* DesignComponents.swift */; };
+		AA000000000000000000010CA /* HistoryTabWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000CA /* HistoryTabWrapper.swift */; };
+		AA000000000000000000010DA /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000DA /* SettingsTabView.swift */; };
+		AA000000000000000000010EA /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000EA /* HomeView.swift */; };
+		AA0000000000000000000101A /* HealthKitWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000001A /* HealthKitWriter.swift */; };
+		AA0000000000000000000102A /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002A /* HistoryView.swift */; };
+		AA0000000000000000000103A /* ProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000003A /* ProfilesView.swift */; };
+		AA0000000000000000000104A /* QNScaleParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000004A /* QNScaleParser.swift */; };
+		AA0000000000000000000105A /* ScaleBLEManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000005A /* ScaleBLEManager.swift */; };
+		AA0000000000000000000106A /* ScaleCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000006A /* ScaleCore.swift */; };
+		AA0000000000000000000107A /* ScaleSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000007A /* ScaleSyncApp.swift */; };
+		AA0000000000000000000108A /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000008A /* UserProfile.swift */; };
+		AA0000000000000000000109A /* WeighIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000009A /* WeighIn.swift */; };
+		AA0000000000000000000201A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000200A /* Assets.xcassets */; };
+		AA0000000000000000000450A /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000400A /* CoreBluetooth.framework */; };
+		AA0000000000000000000451A /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000401A /* HealthKit.framework */; };
+		AA0000000000000000000452A /* Combine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000402A /* Combine.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AA000000000000000000000AA /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		AA000000000000000000000BA /* DesignComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignComponents.swift; sourceTree = "<group>"; };
+		AA000000000000000000000CA /* HistoryTabWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTabWrapper.swift; sourceTree = "<group>"; };
+		AA000000000000000000000DA /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
+		AA000000000000000000000EA /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000001A /* HealthKitWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitWriter.swift; sourceTree = "<group>"; };
+		AA0000000000000000000002A /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000003A /* ProfilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilesView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000004A /* QNScaleParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QNScaleParser.swift; sourceTree = "<group>"; };
+		AA0000000000000000000005A /* ScaleBLEManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleBLEManager.swift; sourceTree = "<group>"; };
+		AA0000000000000000000006A /* ScaleCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleCore.swift; sourceTree = "<group>"; };
+		AA0000000000000000000007A /* ScaleSyncApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleSyncApp.swift; sourceTree = "<group>"; };
+		AA0000000000000000000008A /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
+		AA0000000000000000000009A /* WeighIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighIn.swift; sourceTree = "<group>"; };
+		AA0000000000000000000200A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA0000000000000000000202A /* ScaleBridge.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ScaleBridge.entitlements; sourceTree = "<group>"; };
+		AA0000000000000000000313A /* ScaleBridge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScaleBridge.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000400A /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
+		AA0000000000000000000401A /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
+		AA0000000000000000000402A /* Combine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Combine.framework; path = System/Library/Frameworks/Combine.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA0000000000000000000311A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA0000000000000000000450A /* CoreBluetooth.framework in Frameworks */,
+				AA0000000000000000000451A /* HealthKit.framework in Frameworks */,
+				AA0000000000000000000452A /* Combine.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		761530612FD4852300C3C906 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000400A /* CoreBluetooth.framework */,
+				AA0000000000000000000401A /* HealthKit.framework */,
+				AA0000000000000000000402A /* Combine.framework */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000300A = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000350A /* ScaleBridge */,
+				AA0000000000000000000312A /* Products */,
+				761530612FD4852300C3C906 /* Recovered References */,
+			);
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000312A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000313A /* ScaleBridge.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000350A /* ScaleBridge */ = {
+			isa = PBXGroup;
+			children = (
+				AA000000000000000000000AA /* DesignSystem.swift */,
+				AA000000000000000000000BA /* DesignComponents.swift */,
+				AA000000000000000000000CA /* HistoryTabWrapper.swift */,
+				AA000000000000000000000DA /* SettingsTabView.swift */,
+				AA000000000000000000000EA /* HomeView.swift */,
+				AA0000000000000000000001A /* HealthKitWriter.swift */,
+				AA0000000000000000000002A /* HistoryView.swift */,
+				AA0000000000000000000003A /* ProfilesView.swift */,
+				AA0000000000000000000004A /* QNScaleParser.swift */,
+				AA0000000000000000000005A /* ScaleBLEManager.swift */,
+				AA0000000000000000000006A /* ScaleCore.swift */,
+				AA0000000000000000000007A /* ScaleSyncApp.swift */,
+				AA0000000000000000000008A /* UserProfile.swift */,
+				AA0000000000000000000009A /* WeighIn.swift */,
+				AA0000000000000000000200A /* Assets.xcassets */,
+				AA0000000000000000000202A /* ScaleBridge.entitlements */,
+			);
+			path = ScaleBridge;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA0000000000000000000303A /* ScaleBridge */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA0000000000000000000306A /* Build configuration list for PBXNativeTarget "ScaleBridge" */;
+			buildPhases = (
+				AA0000000000000000000301A /* Sources */,
+				AA0000000000000000000302A /* Resources */,
+				AA0000000000000000000311A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ScaleBridge;
+			productName = ScaleBridge;
+			productReference = AA0000000000000000000313A /* ScaleBridge.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA0000000000000000000304A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+			};
+			buildConfigurationList = AA0000000000000000000305A /* Build configuration list for PBXProject "ScaleBridge" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AA0000000000000000000300A;
+			productRefGroup = AA0000000000000000000312A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AA0000000000000000000303A /* ScaleBridge */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AA0000000000000000000302A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA0000000000000000000201A /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA0000000000000000000301A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA000000000000000000010AA /* DesignSystem.swift in Sources */,
+				AA000000000000000000010BA /* DesignComponents.swift in Sources */,
+				AA000000000000000000010CA /* HistoryTabWrapper.swift in Sources */,
+				AA000000000000000000010DA /* SettingsTabView.swift in Sources */,
+				AA000000000000000000010EA /* HomeView.swift in Sources */,
+				AA0000000000000000000101A /* HealthKitWriter.swift in Sources */,
+				AA0000000000000000000102A /* HistoryView.swift in Sources */,
+				AA0000000000000000000103A /* ProfilesView.swift in Sources */,
+				AA0000000000000000000104A /* QNScaleParser.swift in Sources */,
+				AA0000000000000000000105A /* ScaleBLEManager.swift in Sources */,
+				AA0000000000000000000106A /* ScaleCore.swift in Sources */,
+				AA0000000000000000000107A /* ScaleSyncApp.swift in Sources */,
+				AA0000000000000000000108A /* UserProfile.swift in Sources */,
+				AA0000000000000000000109A /* WeighIn.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AA0000000000000000000307A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AA0000000000000000000308A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AA0000000000000000000309A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ScaleBridge/ScaleBridge.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A5CX8H4MPQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "ScaleBridge needs Bluetooth to connect to your body-composition scale.";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "ScaleBridge needs Bluetooth to connect to your body-composition scale.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "ScaleBridge reads body measurements from Apple Health.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "ScaleBridge writes weight and body composition to Apple Health.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ishubhamsingh.ScaleBridge;
+				PRODUCT_NAME = ScaleBridge;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000310A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ScaleBridge/ScaleBridge.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A5CX8H4MPQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "ScaleBridge needs Bluetooth to connect to your body-composition scale.";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "ScaleBridge needs Bluetooth to connect to your body-composition scale.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "ScaleBridge reads body measurements from Apple Health.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "ScaleBridge writes weight and body composition to Apple Health.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ishubhamsingh.ScaleBridge;
+				PRODUCT_NAME = ScaleBridge;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA0000000000000000000305A /* Build configuration list for PBXProject "ScaleBridge" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000307A /* Debug */,
+				AA0000000000000000000308A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA0000000000000000000306A /* Build configuration list for PBXNativeTarget "ScaleBridge" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000309A /* Debug */,
+				AA0000000000000000000310A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA0000000000000000000304A /* Project object */;
+}
