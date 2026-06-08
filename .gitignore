@@ -1,3 +1,6 @@
+# Claude Code
+.claude/
+
 # Xcode
 *.xcuserstate
 *.xcuserdatad/
@@ -5,6 +8,7 @@ xcuserdata/
 *.mode1v3
 *.mode2v3
 *.perspectivev3
+*.xcworkspace/
 *.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 
 # Build products
