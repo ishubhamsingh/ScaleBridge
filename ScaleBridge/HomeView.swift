@@ -18,6 +18,8 @@ struct HomeView: View {
     )
     private let healthKit = HealthKitWriter()
 
+    @EnvironmentObject private var router: TabRouter
+
     @Environment(\.modelContext) private var context
     @Query(sort: \UserProfile.createdAt) private var profiles: [UserProfile]
     @AppStorage("activeUserID")    private var activeUserIDString: String = ""
@@ -59,7 +61,7 @@ struct HomeView: View {
                         compGrid
                             .padding(.horizontal, DS.Space.screenGutter)
 
-                        Button("Show All Health Data") { /* Phase 10 */ }
+                        Button("Show All Health Data") { router.selectedTab = .history }
                             .font(DS.Typeface.bodyMedium)
                             .foregroundStyle(BodyMetric.weight.color)
                             .frame(maxWidth: .infinity)

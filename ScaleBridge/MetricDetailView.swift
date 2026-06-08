@@ -12,6 +12,8 @@ struct MetricDetailView: View {
     let metric: BodyMetric
     let profile: UserProfile
 
+    @EnvironmentObject private var router: TabRouter
+
     @State private var timeRange: MetricTimeRange = .month
     @State private var selectedWeighIn: WeighIn? = nil
     @AppStorage("weightUnit") private var weightUnitRaw: String = "kg"
@@ -384,7 +386,7 @@ struct MetricDetailView: View {
                         .tracking(0.04 * 13)
                         .foregroundStyle(DS.Palette.secondaryLabel)
                     Spacer()
-                    Button("Open History") { /* Phase 8: switch to History tab */ }
+                    Button("Open History") { router.selectedTab = .history }
                         .font(DS.Typeface.subheadline)
                         .foregroundStyle(DS.Palette.weight)
                 }

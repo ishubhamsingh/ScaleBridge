@@ -12,8 +12,10 @@ struct SettingsTabView: View {
     @AppStorage("heightUnit")      private var heightUnitRaw: String = HeightUnit.cm.rawValue
     @AppStorage("syncToHealthKit") private var syncToHealthKit: Bool = true
 
-    @State private var showingEraseAlert = false
+    @State private var showingEraseAlert   = false
     @State private var editTarget: UserProfile? = nil
+    @State private var showingLicenses     = false
+    @State private var showingPrivacy      = false
 
     // MARK: Derived
 
@@ -69,6 +71,8 @@ struct SettingsTabView: View {
                 commitProfileSave(data: data, updating: profile)
             }
         }
+        .sheet(isPresented: $showingLicenses) { OpenSourceView() }
+        .sheet(isPresented: $showingPrivacy)  { PrivacyPolicyView() }
         .alert("Erase all data?", isPresented: $showingEraseAlert) {
             Button("Erase", role: .destructive) { eraseAllData() }
             Button("Cancel", role: .cancel) {}
@@ -346,8 +350,8 @@ struct SettingsTabView: View {
 
                 rowDivider()
 
-                // Open-source acknowledgments (Phase 12)
-                Button { } label: {
+                // Open-source acknowledgments
+                Button { showingLicenses = true } label: {
                     HStack {
                         Text("Open-source acknowledgments")
                             .font(DS.Typeface.body)
@@ -365,8 +369,8 @@ struct SettingsTabView: View {
 
                 rowDivider()
 
-                // Privacy policy (Phase 12)
-                Button { } label: {
+                // Privacy policy
+                Button { showingPrivacy = true } label: {
                     HStack {
                         Text("Privacy policy")
                             .font(DS.Typeface.body)
@@ -466,5 +470,139 @@ struct SettingsTabView: View {
         profile.isPrimary   = data.isPrimary
         profile.avatar      = data.avatar
         try? context.save()
+    }
+}
+
+// MARK: - OpenSourceView
+
+private struct OpenSourceView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: DS.Space.l) {
+                    licenseCard(
+                        name: "openScale — TrisaBodyAnalyzeLib",
+                        license: "GPLv3",
+                        url: "https://github.com/oliexdev/openScale",
+                        description: "Body composition formulas (body fat, muscle, water, bone, lean mass) are ported from openScale's TrisaBodyAnalyzeLib. ScaleBridge is a derivative work and is also distributed under GPLv3."
+                    )
+                    licenseCard(
+                        name: "Swift / SwiftUI / SwiftData",
+                        license: "Apple Frameworks",
+                        url: nil,
+                        description: "UI, persistence, and Combine reactivity built with Apple's first-party frameworks. CoreBluetooth powers the BLE scale connection."
+                    )
+                }
+                .padding(DS.Space.screenGutter)
+                .padding(.bottom, 40)
+            }
+            .background(DS.Palette.ground.ignoresSafeArea())
+            .navigationTitle("Open-Source")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func licenseCard(name: String, license: String, url: String?, description: String) -> some View {
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(name)
+                        .font(DS.Typeface.bodyMedium)
+                        .foregroundStyle(DS.Palette.label)
+                    if let url {
+                        Text(url)
+                            .font(DS.Typeface.caption)
+                            .foregroundStyle(DS.Palette.weight)
+                    }
+                }
+                Spacer()
+                Text(license)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(DS.Palette.muscle)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(DS.Palette.muscle.opacity(0.12),
+                                in: Capsule())
+            }
+            Text(description)
+                .font(DS.Typeface.subheadline)
+                .foregroundStyle(DS.Palette.secondaryLabel)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(DS.Space.cardPaddingHero)
+        .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+}
+
+// MARK: - PrivacyPolicyView
+
+private struct PrivacyPolicyView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: DS.Space.l) {
+                    privacyCard(
+                        icon: "iphone",
+                        title: "All data stays on your device",
+                        body: "ScaleBridge stores every weigh-in reading in SwiftData — a local, on-device database. No data is uploaded to any server, cloud service, or third party at any point."
+                    )
+                    privacyCard(
+                        icon: "heart.fill",
+                        title: "Apple Health (optional)",
+                        body: "If you enable Apple Health sync, weight, body fat percentage, lean body mass, and BMI are written to HealthKit for the primary profile only. This data stays within Apple's Health framework and is subject to Apple's privacy policy. You can disable sync in Settings at any time."
+                    )
+                    privacyCard(
+                        icon: "person.2",
+                        title: "Multiple profiles",
+                        body: "Secondary profiles are stored locally only and are never synced to Apple Health. All profile data (name, age, height, sex) is kept on device."
+                    )
+                    privacyCard(
+                        icon: "trash",
+                        title: "Deleting your data",
+                        body: "All readings can be permanently deleted from Settings → Erase all data. Individual readings can be deleted from Reading Detail. Deleting the app removes all local data immediately."
+                    )
+                }
+                .padding(DS.Space.screenGutter)
+                .padding(.bottom, 40)
+            }
+            .background(DS.Palette.ground.ignoresSafeArea())
+            .navigationTitle("Privacy Policy")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func privacyCard(icon: String, title: String, body: String) -> some View {
+        HStack(alignment: .top, spacing: DS.Space.m) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(DS.Palette.weight)
+                .frame(width: 28)
+                .padding(.top, 2)
+            VStack(alignment: .leading, spacing: DS.Space.xs) {
+                Text(title)
+                    .font(DS.Typeface.bodyMedium)
+                    .foregroundStyle(DS.Palette.label)
+                Text(body)
+                    .font(DS.Typeface.subheadline)
+                    .foregroundStyle(DS.Palette.secondaryLabel)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(DS.Space.cardPaddingHero)
+        .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }

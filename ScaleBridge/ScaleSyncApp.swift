@@ -35,6 +35,16 @@ struct ScaleSyncApp: App {
     }
 }
 
+// MARK: - TabRouter
+
+enum AppTab: String {
+    case today, history, profiles, settings
+}
+
+final class TabRouter: ObservableObject {
+    @Published var selectedTab: AppTab = .today
+}
+
 // MARK: - RootTabView
 //
 // The persistent TabView shell. Each tab gets its own NavigationStack so
@@ -42,21 +52,24 @@ struct ScaleSyncApp: App {
 // The glass tab bar renders automatically on iOS 26.
 
 struct RootTabView: View {
+    @StateObject private var router = TabRouter()
+
     var body: some View {
-        TabView {
-            Tab("Today", systemImage: "house") {
+        TabView(selection: $router.selectedTab) {
+            Tab("Today", systemImage: "house", value: AppTab.today) {
                 HomeView()
             }
-            Tab("History", systemImage: "chart.bar") {
+            Tab("History", systemImage: "chart.bar", value: AppTab.history) {
                 HistoryTabWrapper()
             }
-            Tab("Profiles", systemImage: "person.2") {
+            Tab("Profiles", systemImage: "person.2", value: AppTab.profiles) {
                 ProfilesView()
             }
-            Tab("Settings", systemImage: "gearshape") {
+            Tab("Settings", systemImage: "gearshape", value: AppTab.settings) {
                 SettingsTabView()
             }
         }
+        .environmentObject(router)
     }
 }
 
