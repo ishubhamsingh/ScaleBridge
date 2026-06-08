@@ -14,6 +14,7 @@ struct MetricDetailView: View {
 
     @State private var timeRange: MetricTimeRange = .month
     @State private var selectedWeighIn: WeighIn? = nil
+    @AppStorage("weightUnit") private var weightUnitRaw: String = "kg"
 
     // MARK: Derived
 
@@ -31,14 +32,22 @@ struct MetricDetailView: View {
     }
 
     private func value(from w: WeighIn) -> Float? {
+        let lb = weightUnitRaw == "lb"
         switch metric {
-        case .weight:  return w.weightKg
+        case .weight:  return lb ? w.weightKg * 2.20462 : w.weightKg
         case .bodyFat: return w.fatPercent
         case .muscle:  return w.musclePercent
         case .water:   return w.waterPercent
         case .bmi:     return w.bmi
-        case .lean:    return w.leanMassKg
+        case .lean:    return w.leanMassKg.map { lb ? $0 * 2.20462 : $0 }
         case .bone:    return w.bonePercent
+        }
+    }
+
+    private var displayUnit: String {
+        switch metric {
+        case .weight, .lean: return weightUnitRaw == "lb" ? "lb" : "kg"
+        default: return metric.unit
         }
     }
 
@@ -63,7 +72,7 @@ struct MetricDetailView: View {
             VStack(alignment: .leading, spacing: DS.Space.l) {
                 heroSection
                 timeRangePicker
-                if chartPoints.count >= 2 {
+                if chartPoints.count >= 1 {
                     chartCard
                     statsGrid
                 }
@@ -108,8 +117,8 @@ struct MetricDetailView: View {
                         .font(.system(size: 64, weight: .bold).monospacedDigit())
                         .tracking(-0.035 * 64)
                         .foregroundStyle(DS.Palette.label)
-                    if !metric.unit.isEmpty {
-                        Text(metric.unit)
+                    if !displayUnit.isEmpty {
+                        Text(displayUnit)
                             .font(DS.Typeface.title2)
                             .foregroundStyle(DS.Palette.secondaryLabel)
                     }
@@ -132,7 +141,7 @@ struct MetricDetailView: View {
                     Image(systemName: delta <= 0 ? "chevron.down" : "chevron.up")
                         .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(accent)
-                    Text(String(format: "%.\(metric.decimals)f \(metric.unit)", abs(delta)))
+                    Text(String(format: "%.\(metric.decimals)f \(displayUnit)", abs(delta)))
                         .font(DS.Typeface.footnote)
                         .foregroundStyle(accent)
                     Text("from \(daysSince(prevEntry.date)) · Last reading \(latestEntry.date.formatted(.dateTime.hour().minute()))")
@@ -187,8 +196,8 @@ struct MetricDetailView: View {
                         Text(String(format: "%.\(metric.decimals)f", avg))
                             .font(.system(size: 28, weight: .bold).monospacedDigit())
                             .foregroundStyle(DS.Palette.label)
-                        if !metric.unit.isEmpty {
-                            Text(metric.unit)
+                        if !displayUnit.isEmpty {
+                            Text(displayUnit)
                                 .font(DS.Typeface.subheadline)
                                 .foregroundStyle(DS.Palette.secondaryLabel)
                         }
@@ -241,8 +250,8 @@ struct MetricDetailView: View {
                 Text(String(format: "%.\(metric.decimals)f", value))
                     .font(.system(size: 24, weight: .bold).monospacedDigit())
                     .foregroundStyle(DS.Palette.label)
-                if !metric.unit.isEmpty {
-                    Text(metric.unit)
+                if !displayUnit.isEmpty {
+                    Text(displayUnit)
                         .font(DS.Typeface.footnote)
                         .foregroundStyle(DS.Palette.secondaryLabel)
                 }
@@ -251,14 +260,14 @@ struct MetricDetailView: View {
                 .font(DS.Typeface.footnote)
                 .foregroundStyle(DS.Palette.secondaryLabel)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(DS.Space.cardPaddingHero)
         .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     private var changeCard: some View {
         let delta = (chartPoints.last?.value ?? 0) - (chartPoints.first?.value ?? 0)
-        let good  = metric.lowerIsBetter ? delta <= 0 : delta >= 0
+        let good  = abs(delta) < 1e-6 ? true : (metric.lowerIsBetter ? delta <= 0 : delta >= 0)
         let color = good ? DS.Palette.positive : DS.Palette.bodyFat
         let sub   = chartPoints.first.map { "vs \(relDate($0.date))" } ?? ""
 
@@ -271,8 +280,8 @@ struct MetricDetailView: View {
                 Text(String(format: "%.\(metric.decimals)f", abs(delta)))
                     .font(.system(size: 24, weight: .bold).monospacedDigit())
                     .foregroundStyle(color)
-                if !metric.unit.isEmpty {
-                    Text(metric.unit)
+                if !displayUnit.isEmpty {
+                    Text(displayUnit)
                         .font(DS.Typeface.footnote)
                         .foregroundStyle(DS.Palette.secondaryLabel)
                 }
@@ -281,7 +290,7 @@ struct MetricDetailView: View {
                 .font(DS.Typeface.footnote)
                 .foregroundStyle(DS.Palette.secondaryLabel)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(DS.Space.cardPaddingHero)
         .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
@@ -308,7 +317,7 @@ struct MetricDetailView: View {
                     .foregroundStyle(DS.Palette.secondaryLabel)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(DS.Space.cardPaddingHero)
         .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
@@ -335,12 +344,22 @@ struct MetricDetailView: View {
                     .foregroundStyle(DS.Palette.label)
                     .fixedSize(horizontal: false, vertical: true)
 
-                if let note = metric.healthKitNote {
+                if profile.isPrimary, let note = metric.healthKitNote {
                     HStack(spacing: DS.Space.s) {
                         Image(systemName: "heart.fill")
                             .font(.system(size: 13))
                             .foregroundStyle(DS.Palette.muscle)
                         Text(note)
+                            .font(DS.Typeface.subheadline)
+                            .foregroundStyle(DS.Palette.secondaryLabel)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                } else if !profile.isPrimary {
+                    HStack(spacing: DS.Space.s) {
+                        Image(systemName: "internaldrive")
+                            .font(.system(size: 13))
+                            .foregroundStyle(DS.Palette.secondaryLabel)
+                        Text("This profile's readings are stored in ScaleBridge only.")
                             .font(DS.Typeface.subheadline)
                             .foregroundStyle(DS.Palette.secondaryLabel)
                             .fixedSize(horizontal: false, vertical: true)
@@ -399,8 +418,8 @@ struct MetricDetailView: View {
                 Text(val.map { String(format: "%.\(metric.decimals)f", $0) } ?? "—")
                     .font(.system(size: 17, weight: .semibold).monospacedDigit())
                     .foregroundStyle(DS.Palette.label)
-                if val != nil && !metric.unit.isEmpty {
-                    Text(metric.unit)
+                if val != nil && !displayUnit.isEmpty {
+                    Text(displayUnit)
                         .font(DS.Typeface.footnote)
                         .foregroundStyle(DS.Palette.secondaryLabel)
                 }
@@ -455,33 +474,44 @@ private struct MetricChart: View {
     let minV: Double
     let maxV: Double
 
-    private var yMin: Double { minV - (maxV - minV) * 0.15 }
-    private var yMax: Double { maxV + (maxV - minV) * 0.15 }
+    private var yPad: Double {
+        let range = maxV - minV
+        guard range > 1e-6 else { return max(abs(minV) * 0.05, 0.5) }
+        return range * 0.15
+    }
+    private var yMin: Double { minV - yPad }
+    private var yMax: Double { maxV + yPad }
 
     var body: some View {
         Chart {
-            ForEach(Array(data.enumerated()), id: \.offset) { _, pt in
-                AreaMark(
-                    x: .value("Date", pt.date),
-                    yStart: .value("Min",   yMin),
-                    yEnd:   .value("Value", pt.value)
-                )
-                .foregroundStyle(LinearGradient(
-                    colors: [color.opacity(0.20), color.opacity(0.04)],
-                    startPoint: .top, endPoint: .bottom
-                ))
-                .interpolationMethod(.catmullRom)
-
-                LineMark(x: .value("Date", pt.date), y: .value("Value", pt.value))
+            if data.count == 1, let pt = data.first {
+                PointMark(x: .value("Date", pt.date), y: .value("Value", pt.value))
                     .foregroundStyle(color)
-                    .lineStyle(StrokeStyle(lineWidth: 2))
+                    .symbolSize(64)
+            } else {
+                ForEach(Array(data.enumerated()), id: \.offset) { _, pt in
+                    AreaMark(
+                        x: .value("Date", pt.date),
+                        yStart: .value("Min",   yMin),
+                        yEnd:   .value("Value", pt.value)
+                    )
+                    .foregroundStyle(LinearGradient(
+                        colors: [color.opacity(0.20), color.opacity(0.04)],
+                        startPoint: .top, endPoint: .bottom
+                    ))
                     .interpolationMethod(.catmullRom)
-            }
 
-            // Average dashed rule
-            RuleMark(y: .value("Avg", avg))
-                .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                .foregroundStyle(color.opacity(0.45))
+                    LineMark(x: .value("Date", pt.date), y: .value("Value", pt.value))
+                        .foregroundStyle(color)
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .interpolationMethod(.catmullRom)
+                }
+
+                // Average dashed rule — only meaningful with multiple points
+                RuleMark(y: .value("Avg", avg))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
+                    .foregroundStyle(color.opacity(0.45))
+            }
         }
         .chartYScale(domain: yMin...yMax)
         .chartXAxis {
@@ -548,9 +578,9 @@ private extension BodyMetric {
 
     var healthKitNote: String? {
         switch self {
-        case .weight:  return "Syncs to Apple Health under Body Mass."
+        case .weight:  return "Syncs to Apple Health under Weight."
         case .bodyFat: return "Syncs to Apple Health under Body Fat Percentage."
-        case .lean:    return "Syncs to Apple Health under Lean Body Mass."
+        case .lean:    return "Syncs to Apple Health under Lean Body Mass. Computed as weight × (1 − body fat %) — only available when body fat data is present."
         case .bmi:     return "Syncs to Apple Health under Body Mass Index."
         case .muscle, .water, .bone:
             return "Apple Health has no native type for this metric — it is stored in ScaleBridge only."

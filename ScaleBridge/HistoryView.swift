@@ -16,6 +16,7 @@ struct HistoryView: View {
     @State private var selectedIDs: Set<UUID> = []
     @State private var timeRange: HistoryTimeRange = .month
     @State private var chartMetric: HistoryMetric  = .weight
+    @AppStorage("weightUnit") private var weightUnitRaw: String = "kg"
 
     // MARK: Derived
 
@@ -27,9 +28,15 @@ struct HistoryView: View {
     }
 
     private var chartPoints: [(date: Date, value: Double)] {
-        filteredWeighIns.reversed().compactMap { w in
+        let raw = filteredWeighIns.reversed().compactMap { w in
             chartMetric.value(from: w).map { (date: w.date, value: Double($0)) }
         }
+        guard chartMetric == .weight, weightUnitRaw == "lb" else { return raw }
+        return raw.map { (date: $0.date, value: $0.value * 2.20462) }
+    }
+
+    private var chartDisplayUnit: String {
+        chartMetric == .weight && weightUnitRaw == "lb" ? "lb" : chartMetric.unit
     }
 
     private var groupedReadings: [(month: Date, readings: [WeighIn])] {
@@ -73,12 +80,10 @@ struct HistoryView: View {
             VStack(alignment: .leading, spacing: DS.Space.l) {
                 navHeader
 
-                if allWeighIns.count >= 2 {
-                    timeRangePicker
-                    metricChips
-                    if chartPoints.count >= 2 {
-                        chartCard
-                    }
+                timeRangePicker
+                metricChips
+                if chartPoints.count >= 1 {
+                    chartCard
                 }
 
                 ForEach(groupedReadings, id: \.month) { group in
@@ -206,7 +211,7 @@ struct HistoryView: View {
 
             // Stats row
             HStack(spacing: 0) {
-                chartStat(label: "AVERAGE", value: chartAverage, unit: chartMetric.unit)
+                chartStat(label: "AVERAGE", value: chartAverage, unit: chartDisplayUnit)
                 Divider().frame(height: 36)
                 chartStat(label: "RANGE",   value: chartRange,   unit: "")
                 if let ch = chartChange {
@@ -253,7 +258,7 @@ struct HistoryView: View {
             HStack(alignment: .lastTextBaseline, spacing: 3) {
                 Image(systemName: change.delta < 0 ? "chevron.down" : "chevron.up")
                     .font(.system(size: 11, weight: .bold))
-                Text(String(format: "%.1f \(chartMetric.unit)", abs(change.delta)))
+                Text(String(format: "%.1f \(chartDisplayUnit)", abs(change.delta)))
                     .font(.system(size: 22, weight: .bold).monospacedDigit())
             }
             .foregroundStyle(change.good ? DS.Palette.positive : DS.Palette.bodyFat)
@@ -271,12 +276,14 @@ struct HistoryView: View {
     private var chartRange: String {
         guard let lo = chartPoints.map(\.value).min(),
               let hi = chartPoints.map(\.value).max() else { return "—" }
+        if abs(hi - lo) < 1e-6 { return String(format: "%.1f", lo) }
         return String(format: "%.1f–%.1f", lo, hi)
     }
     private var chartChange: (delta: Double, good: Bool)? {
         guard let first = chartPoints.first?.value,
               let last  = chartPoints.last?.value else { return nil }
         let delta = last - first
+        guard abs(delta) > 1e-6 else { return nil }
         let good  = chartMetric.lowerIsBetter ? delta < 0 : delta > 0
         return (delta, good)
     }
@@ -349,7 +356,8 @@ struct HistoryView: View {
 
             // Weight + fat stacked right-aligned
             VStack(alignment: .trailing, spacing: 2) {
-                Text(String(format: "%.1f", w.weightKg))
+                let displayWeight: Float = weightUnitRaw == "lb" ? w.weightKg * 2.20462 : w.weightKg
+                Text(String(format: "%.1f", displayWeight))
                     .font(.system(size: 20, weight: .semibold).monospacedDigit())
                     .foregroundStyle(DS.Palette.label)
                 Text(w.fatPercent.map { String(format: "%.1f%%", $0) } ?? "—")
@@ -501,26 +509,32 @@ private struct TrendChart: View {
 
     var body: some View {
         Chart {
-            ForEach(Array(data.enumerated()), id: \.offset) { _, pt in
-                AreaMark(
-                    x: .value("Date", pt.date),
-                    yStart: .value("Min",   minY),
-                    yEnd:   .value("Value", pt.value)
-                )
-                .foregroundStyle(LinearGradient(
-                    colors: [color.opacity(0.20), color.opacity(0.03)],
-                    startPoint: .top, endPoint: .bottom
-                ))
-                .interpolationMethod(.catmullRom)
-
-                LineMark(x: .value("Date", pt.date), y: .value("Value", pt.value))
-                    .foregroundStyle(color)
-                    .lineStyle(StrokeStyle(lineWidth: 2))
-                    .interpolationMethod(.catmullRom)
-
+            if data.count == 1, let pt = data.first {
                 PointMark(x: .value("Date", pt.date), y: .value("Value", pt.value))
                     .foregroundStyle(color)
-                    .symbolSize(20)
+                    .symbolSize(64)
+            } else {
+                ForEach(Array(data.enumerated()), id: \.offset) { _, pt in
+                    AreaMark(
+                        x: .value("Date", pt.date),
+                        yStart: .value("Min",   minY),
+                        yEnd:   .value("Value", pt.value)
+                    )
+                    .foregroundStyle(LinearGradient(
+                        colors: [color.opacity(0.20), color.opacity(0.03)],
+                        startPoint: .top, endPoint: .bottom
+                    ))
+                    .interpolationMethod(.catmullRom)
+
+                    LineMark(x: .value("Date", pt.date), y: .value("Value", pt.value))
+                        .foregroundStyle(color)
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .interpolationMethod(.catmullRom)
+
+                    PointMark(x: .value("Date", pt.date), y: .value("Value", pt.value))
+                        .foregroundStyle(color)
+                        .symbolSize(20)
+                }
             }
         }
         .chartYScale(domain: minY...maxY)

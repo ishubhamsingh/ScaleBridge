@@ -362,6 +362,7 @@ private struct DonePhase: View {
             Divider().background(.black.opacity(0.08))
             bmiRow(bmi: m.bmi)
         }
+        .environment(\.colorScheme, .light)
         .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 

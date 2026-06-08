@@ -135,7 +135,7 @@ enum BodyMetric: String, CaseIterable, Identifiable {
         case .water:   "drop"
         case .bmi:     "ruler"
         case .lean:    "figure.arms.open"
-        case .bone:    "figure.skeleton"
+        case .bone:    "diamond"
         }
     }
 

@@ -20,10 +20,13 @@ struct HomeView: View {
 
     @Environment(\.modelContext) private var context
     @Query(sort: \UserProfile.createdAt) private var profiles: [UserProfile]
-    @AppStorage("activeUserID") private var activeUserIDString: String = ""
+    @AppStorage("activeUserID")    private var activeUserIDString: String = ""
+    @AppStorage("syncToHealthKit") private var syncToHealthKit: Bool = true
+    @AppStorage("weightUnit")      private var weightUnitRaw: String = "kg"
 
-    @State private var showingWeighIn  = false
+    @State private var showingWeighIn      = false
     @State private var selectedMetric: BodyMetric? = nil
+    @State private var showingUserSwitcher = false
 
     // MARK: Derived
 
@@ -73,6 +76,10 @@ struct HomeView: View {
                 }
             }
         }
+        .sheet(isPresented: $showingUserSwitcher) {
+            UserSwitcherSheet()
+                .presentationDetents([.medium, .large])
+        }
         .task { try? await healthKit.requestAuthorization() }
         .onChange(of: ble.status) { _, newStatus in
             if case .done = newStatus, let m = ble.lastMeasurement {
@@ -112,7 +119,7 @@ struct HomeView: View {
                     .tracking(0.04 * 13)
                     .foregroundStyle(DS.Palette.secondaryLabel)
                 Spacer()
-                GlassCircleButton(size: 34, action: {}) {
+                GlassCircleButton(size: 34, action: { showingUserSwitcher = true }) {
                     Text(activeProfile?.avatar ?? "👤")
                         .font(.system(size: 18))
                 }
@@ -209,12 +216,14 @@ struct HomeView: View {
     }
 
     private func weightHeroRow(_ w: WeighIn) -> some View {
-        HStack(alignment: .lastTextBaseline, spacing: 4) {
-            Text(String(format: "%.1f", w.weightKg))
+        let isLb = weightUnitRaw == "lb"
+        let val: Float = isLb ? w.weightKg * 2.20462 : w.weightKg
+        return HStack(alignment: .lastTextBaseline, spacing: 4) {
+            Text(String(format: "%.1f", val))
                 .font(.system(size: 52, weight: .bold).monospacedDigit())
                 .tracking(-0.035 * 52)
                 .foregroundStyle(DS.Palette.label)
-            Text("kg")
+            Text(isLb ? "lb" : "kg")
                 .font(DS.Typeface.title3)
                 .foregroundStyle(DS.Palette.secondaryLabel)
         }
@@ -224,11 +233,14 @@ struct HomeView: View {
         HStack(spacing: DS.Space.xs) {
             if let prev = previousWeighIn {
                 let delta       = w.weightKg - prev.weightKg
+                let isLb        = weightUnitRaw == "lb"
+                let displayDelta: Float = isLb ? abs(delta) * 2.20462 : abs(delta)
+                let unitLabel   = isLb ? "lb" : "kg"
                 let accentColor = delta <= 0 ? DS.Palette.positive : DS.Palette.bodyFat
                 Image(systemName: delta <= 0 ? "chevron.down" : "chevron.up")
                     .font(.system(size: 9, weight: .bold))
                     .foregroundStyle(accentColor)
-                Text(String(format: "%.1f kg", abs(delta)))
+                Text(String(format: "%.1f \(unitLabel)", displayDelta))
                     .font(DS.Typeface.footnote)
                     .foregroundStyle(accentColor)
                 Text("from \(daysSince(prev.date))")
@@ -394,7 +406,7 @@ struct HomeView: View {
         guard let user = activeProfile else { return }
         let weighIn = WeighIn(from: measurement, user: user)
         context.insert(weighIn)
-        if user.isPrimary {
+        if user.isPrimary && syncToHealthKit {
             Task {
                 do {
                     try await healthKit.save(measurement)

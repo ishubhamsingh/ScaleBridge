@@ -43,6 +43,7 @@ final class ScaleBLEManager: NSObject, ObservableObject {
             status = .error("Bluetooth not ready")
             return
         }
+        lastMeasurement = nil
         status = .scanning
         log("Scanning…")
         // Pass nil to discover ALL peripherals while diagnosing; once you've confirmed
@@ -53,10 +54,13 @@ final class ScaleBLEManager: NSObject, ObservableObject {
     func stop() {
         central.stopScan()
         if let p = peripheral { central.cancelPeripheralConnection(p) }
+        peripheral = nil
+        characteristics = [:]
         status = .idle
     }
 
     private func handleMeasurement(_ m: ScaleMeasurement) {
+        guard status == .reading else { return }
         lastMeasurement = m
         status = .done
         log(String(format: "Reading: %.2f kg, fat %.1f%%", m.weightKg, m.fatPercent ?? 0))
@@ -100,6 +104,8 @@ extension ScaleBLEManager: CBCentralManagerDelegate {
     nonisolated func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral,
                                     advertisementData: [String: Any], rssi RSSI: NSNumber) {
         Task { @MainActor in
+            guard status == .scanning else { return }
+
             let name = peripheral.name
                 ?? (advertisementData[CBAdvertisementDataLocalNameKey] as? String)
                 ?? "(no name)"
@@ -129,6 +135,7 @@ extension ScaleBLEManager: CBCentralManagerDelegate {
 
     nonisolated func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         Task { @MainActor in
+            guard status == .connecting else { return }
             status = .connected
             log("Connected. Discovering services…")
             peripheral.discoverServices(parser.serviceUUIDs)
@@ -136,7 +143,10 @@ extension ScaleBLEManager: CBCentralManagerDelegate {
     }
 
     nonisolated func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        Task { @MainActor in status = .error(error?.localizedDescription ?? "connect failed") }
+        Task { @MainActor in
+            guard status == .connecting else { return }
+            status = .error(error?.localizedDescription ?? "connect failed")
+        }
     }
 }
 

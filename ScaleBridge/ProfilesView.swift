@@ -2,8 +2,6 @@ import SwiftUI
 import SwiftData
 
 // MARK: - ProfileFormData
-// Plain value type that ProfileEditView hands back to ProfilesView.
-// ProfilesView owns the model context and performs the actual insert/update.
 
 struct ProfileFormData {
     var name:        String
@@ -17,85 +15,203 @@ struct ProfileFormData {
 // MARK: - ProfilesView
 
 struct ProfilesView: View {
+
     @Environment(\.modelContext) private var context
-    @Environment(\.dismiss)      private var dismiss
     @Query(sort: \UserProfile.createdAt) private var profiles: [UserProfile]
+    @AppStorage("activeUserID") private var activeUserIDString: String = ""
+    @AppStorage("weightUnit")   private var weightUnitRaw: String = "kg"
 
     @State private var showingAdd  = false
-    @State private var editTarget: UserProfile?
+    @State private var editTarget: UserProfile? = nil
+
+    // MARK: Derived
+
+    private var activeProfile: UserProfile? {
+        if let uuid = UUID(uuidString: activeUserIDString),
+           let match = profiles.first(where: { $0.id == uuid }) { return match }
+        return profiles.first(where: { $0.isPrimary }) ?? profiles.first
+    }
+
+    // MARK: Body
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if profiles.isEmpty { emptyState } else { profileList }
+        Group {
+            if profiles.isEmpty { emptyState } else { scrollContent }
+        }
+        .background(DS.Palette.ground.ignoresSafeArea())
+        .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showingAdd) {
+            ProfileEditView(existingProfile: nil, isFirstProfile: profiles.isEmpty) { data in
+                commitSave(data: data, updating: nil)
             }
-            .navigationTitle("Family Members")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
-                }
-                ToolbarItem(placement: .primaryAction) {
-                    Button { showingAdd = true } label: { Image(systemName: "plus") }
-                }
-            }
-            // Add — ProfileEditView gets no context; ProfilesView handles the insert
-            .sheet(isPresented: $showingAdd) {
-                ProfileEditView(
-                    existingProfile: nil,
-                    isFirstProfile: profiles.isEmpty
-                ) { data in
-                    commitSave(data: data, updating: nil)
-                }
-            }
-            // Edit
-            .sheet(item: $editTarget) { profile in
-                ProfileEditView(
-                    existingProfile: profile,
-                    isFirstProfile: false
-                ) { data in
-                    commitSave(data: data, updating: profile)
-                }
+        }
+        .sheet(item: $editTarget) { profile in
+            ProfileEditView(existingProfile: profile, isFirstProfile: false) { data in
+                commitSave(data: data, updating: profile)
             }
         }
     }
 
-    // MARK: Subviews
+    // MARK: - Scroll content
 
-    private var profileList: some View {
-        List {
-            ForEach(profiles) { profile in
-                ProfileRow(profile: profile)
-                    .contentShape(Rectangle())
-                    .onTapGesture { editTarget = profile }
+    private var scrollContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DS.Space.l) {
+                navHeader
+                profileCard
+                footerNote
             }
-            .onDelete(perform: deleteProfiles)
+            .padding(.horizontal, DS.Space.screenGutter)
+            .padding(.top, DS.Space.m)
+            .padding(.bottom, 100)
         }
     }
+
+    // MARK: - Nav header
+
+    private var navHeader: some View {
+        VStack(alignment: .leading, spacing: DS.Space.xs) {
+            Text("FAMILY · \(profiles.count) \(profiles.count == 1 ? "MEMBER" : "MEMBERS")")
+                .font(DS.Typeface.dateCaps)
+                .tracking(0.04 * 13)
+                .foregroundStyle(DS.Palette.secondaryLabel)
+
+            HStack(alignment: .center) {
+                Text("Profiles")
+                    .font(DS.Typeface.largeTitle)
+                    .foregroundStyle(DS.Palette.label)
+                Spacer()
+                Button {
+                    showingAdd = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(DS.Palette.weight)
+                        .frame(width: 38, height: 38)
+                        .background(DS.Palette.card, in: Circle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    // MARK: - Profile card
+
+    private var profileCard: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(profiles.enumerated()), id: \.element.id) { idx, profile in
+                profileRow(profile)
+                if idx < profiles.count - 1 {
+                    Divider().padding(.leading, 76)
+                }
+            }
+        }
+        .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private func profileRow(_ profile: UserProfile) -> some View {
+        let isActive = profile.id == activeProfile?.id
+        return HStack(spacing: DS.Space.m) {
+            // Avatar
+            Text(profile.avatar)
+                .font(.system(size: 28))
+                .frame(width: 52, height: 52)
+                .background(DS.Palette.ground, in: Circle())
+
+            // Info column
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: DS.Space.xs) {
+                    Text(profile.name)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(DS.Palette.label)
+                    if profile.isPrimary {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.yellow)
+                    }
+                    if isActive {
+                        Text("• ACTIVE")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(DS.Palette.weight)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(DS.Palette.weight.opacity(0.12), in: Capsule())
+                    }
+                }
+                Text(profile.subtitle)
+                    .font(DS.Typeface.footnote)
+                    .foregroundStyle(DS.Palette.secondaryLabel)
+                if let latest = profile.latestWeighIn {
+                    let wStr = weightUnitRaw == "lb"
+                        ? String(format: "%.1f lb", latest.weightKg * 2.20462)
+                        : latest.weightString
+                    Text("Last weigh-in: \(wStr) · \(latestDateLabel(latest.date))")
+                        .font(DS.Typeface.caption)
+                        .foregroundStyle(DS.Palette.tertiaryLabel)
+                }
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(DS.Palette.tertiaryLabel)
+        }
+        .padding(.horizontal, DS.Space.l)
+        .frame(minHeight: 76)
+        .contentShape(Rectangle())
+        .onTapGesture { editTarget = profile }
+    }
+
+    private func latestDateLabel(_ date: Date) -> String {
+        let cal = Calendar.current
+        if cal.isDateInToday(date)     { return "Today, \(date.formatted(.dateTime.hour().minute()))" }
+        if cal.isDateInYesterday(date) { return "Yesterday, \(date.formatted(.dateTime.hour().minute()))" }
+        return date.formatted(.dateTime.month(.abbreviated).day())
+    }
+
+    // MARK: - Footer
+
+    private var footerNote: some View {
+        Text("Tap a profile to edit. The starred profile is your primary user — only their readings sync to Apple Health.")
+            .font(DS.Typeface.subheadline)
+            .foregroundStyle(DS.Palette.secondaryLabel)
+    }
+
+    // MARK: - Empty state
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: DS.Space.l) {
             Image(systemName: "person.2")
-                .font(.system(size: 54))
-                .foregroundStyle(.secondary)
-            Text("No profiles yet")
-                .font(.title3).bold()
-            Text("Add yourself first, then other family members.\nThe first profile becomes the primary user.")
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 54, weight: .thin))
+                .foregroundStyle(DS.Palette.secondaryLabel)
+            VStack(spacing: DS.Space.s) {
+                Text("No profiles yet")
+                    .font(DS.Typeface.title3)
+                    .foregroundStyle(DS.Palette.label)
+                Text("Add yourself first, then other family members.\nThe first profile becomes the primary user.")
+                    .font(DS.Typeface.subheadline)
+                    .foregroundStyle(DS.Palette.secondaryLabel)
+                    .multilineTextAlignment(.center)
+            }
             Button("Add Profile") { showingAdd = true }
-                .buttonStyle(.borderedProminent)
+                .font(DS.Typeface.bodyMedium)
+                .foregroundStyle(DS.Palette.weight)
+                .padding(.horizontal, DS.Space.xl)
+                .frame(height: 48)
+                .background(DS.Palette.weight.opacity(0.12), in: Capsule())
+                .buttonStyle(.plain)
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(DS.Space.xxl)
     }
 
-    // MARK: SwiftData writes (all happen here — one sheet level deep, valid context)
+    // MARK: - SwiftData writes
 
-    private func commitSave(data: ProfileFormData, updating existing: UserProfile?) {
-        // Demote current primary if the new/edited profile is taking the crown
+    func commitSave(data: ProfileFormData, updating existing: UserProfile?) {
         if data.isPrimary {
             profiles.forEach { $0.isPrimary = false }
         }
-
         if let profile = existing {
             profile.name        = data.name
             profile.isMale      = data.isMale
@@ -115,54 +231,6 @@ struct ProfilesView: View {
         }
         try? context.save()
     }
-
-    private func deleteProfiles(at offsets: IndexSet) {
-        for index in offsets {
-            let profile = profiles[index]
-            let wasPrimary = profile.isPrimary
-            let remaining  = profiles.filter { $0.id != profile.id }
-            context.delete(profile)
-            if wasPrimary, let next = remaining.first { next.isPrimary = true }
-        }
-        try? context.save()
-    }
-}
-
-// MARK: - ProfileRow
-
-private struct ProfileRow: View {
-    let profile: UserProfile
-    @AppStorage("heightUnit") private var heightUnitRaw: String = HeightUnit.cm.rawValue
-
-    var body: some View {
-        HStack(spacing: 14) {
-            Text(profile.avatar)
-                .font(.system(size: 34))
-                .frame(width: 48, height: 48)
-                .background(.quaternary, in: Circle())
-
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(profile.name).font(.headline)
-                    if profile.isPrimary {
-                        Image(systemName: "star.fill")
-                            .font(.caption)
-                            .foregroundStyle(.yellow)
-                    }
-                }
-                let unit = HeightUnit(rawValue: heightUnitRaw) ?? .cm
-                Text("\(profile.isMale ? "♂" : "♀") · \(profile.age) y · \(profile.heightCm.heightString(unit: unit))")
-                    .font(.caption).foregroundStyle(.secondary)
-                if let latest = profile.latestWeighIn {
-                    Text("Last: \(latest.weightString) · \(latest.date.formatted(date: .abbreviated, time: .omitted))")
-                        .font(.caption2).foregroundStyle(.tertiary)
-                }
-            }
-            Spacer()
-            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
-        }
-        .padding(.vertical, 4)
-    }
 }
 
 // MARK: - ProfileEditView
@@ -171,6 +239,7 @@ private struct ProfileRow: View {
 struct ProfileEditView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("heightUnit") private var heightUnitRaw: String = HeightUnit.cm.rawValue
+    @Query(sort: \UserProfile.createdAt) private var allProfiles: [UserProfile]
 
     let existingProfile: UserProfile?
     let isFirstProfile:  Bool
@@ -199,133 +268,298 @@ struct ProfileEditView: View {
     // MARK: Derived
 
     private var heightUnit: HeightUnit { HeightUnit(rawValue: heightUnitRaw) ?? .cm }
-
-    private var primaryLocked: Bool {
-        isFirstProfile || existingProfile?.isPrimary == true
-    }
-
+    // Only lock for the very first profile — it must be primary and can't be changed.
+    // All other profiles (including the current primary) can freely toggle.
+    private var primaryLocked: Bool { isFirstProfile }
     private var canSave: Bool { !name.trimmingCharacters(in: .whitespaces).isEmpty }
 
+    // The profile that currently holds primary (excluding the one being edited).
+    private var otherPrimary: UserProfile? {
+        allProfiles.first { $0.isPrimary && $0.id != existingProfile?.id }
+    }
+
+    private var primaryFooterNote: String {
+        if primaryLocked {
+            return "The first profile is always primary — only their readings sync to Apple Health."
+        }
+        if isPrimary {
+            if let other = otherPrimary {
+                return "Saving will move Apple Health sync from \(other.name) to this profile."
+            }
+            return "This profile's readings will sync to Apple Health."
+        }
+        if let other = otherPrimary {
+            return "\(other.name)'s readings sync to Apple Health. Toggle on to move sync to this profile."
+        }
+        return "Only the primary user's readings are written to Apple Health. Others are stored locally."
+    }
+
     private var dobRange: ClosedRange<Date> {
-        let cal  = Calendar.current
-        let old  = cal.date(byAdding: .year, value: -120, to: .now)!
-        let young = cal.date(byAdding: .year, value: -5,   to: .now)!
+        let cal   = Calendar.current
+        let old   = cal.date(byAdding: .year, value: -120, to: .now)!
+        let young = cal.date(byAdding: .year, value:   -5, to: .now)!
         return old...young
     }
 
-    // MARK: Height bindings
-
-    private var feetBinding: Binding<Int> {
-        Binding(
-            get: { Int(round(heightCm / 2.54)) / 12 },
-            set: { ft in heightCm = Double(ft * 12 + Int(round(heightCm / 2.54)) % 12) * 2.54 }
-        )
+    private var heightDisplayString: String {
+        if heightUnit == .cm { return "\(Int(heightCm)) cm" }
+        let totalIn = Int(round(heightCm / 2.54))
+        return "\(totalIn / 12) ft \(totalIn % 12) in"
     }
 
-    private var inchesBinding: Binding<Int> {
-        Binding(
-            get: { Int(round(heightCm / 2.54)) % 12 },
-            set: { inches in heightCm = Double(Int(round(heightCm / 2.54)) / 12 * 12 + inches) * 2.54 }
-        )
+    private var heightConversionHint: String {
+        if heightUnit == .cm {
+            let totalIn = Int(round(heightCm / 2.54))
+            return "\(totalIn / 12) ft \(totalIn % 12) in"
+        }
+        return "\(Int(heightCm)) cm"
     }
 
     // MARK: Body
 
     var body: some View {
         NavigationStack {
-            Form {
-                avatarSection
-                detailsSection
-                heightSection
-                primarySection
+            ScrollView {
+                VStack(alignment: .leading, spacing: DS.Space.l) {
+                    avatarSection
+                    detailsSection
+                    heightSection
+                    primarySection
+                }
+                .padding(.horizontal, DS.Space.screenGutter)
+                .padding(.vertical, DS.Space.l)
+                .padding(.bottom, 40)
             }
+            .background(DS.Palette.ground.ignoresSafeArea())
             .navigationTitle(existingProfile == nil ? "New Profile" : "Edit Profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel", role: .cancel) { dismiss() }
+                    Button("Cancel") { dismiss() }
+                        .foregroundStyle(DS.Palette.weight)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }.disabled(!canSave)
+                    Button("Save") { save() }
+                        .fontWeight(.semibold)
+                        .foregroundStyle(canSave ? DS.Palette.weight : DS.Palette.tertiaryLabel)
+                        .disabled(!canSave)
                 }
             }
             .onAppear { if isFirstProfile { isPrimary = true } }
         }
     }
 
-    // MARK: Sections
+    // MARK: - Avatar section
 
     private var avatarSection: some View {
-        Section("Avatar") {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 8), spacing: 8) {
-                ForEach(UserProfile.avatarOptions, id: \.self) { emoji in
-                    Button { avatar = emoji } label: {
-                        Text(emoji).font(.title2)
-                            .frame(maxWidth: .infinity).padding(.vertical, 4)
-                            .background(
-                                avatar == emoji ? Color.accentColor.opacity(0.2) : Color.clear,
-                                in: RoundedRectangle(cornerRadius: 6)
-                            )
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            sectionLabel("AVATAR")
+            VStack(spacing: DS.Space.m) {
+                // Large selected display
+                Text(avatar)
+                    .font(.system(size: 48))
+                    .frame(width: 84, height: 84)
+                    .background(DS.Palette.ground, in: Circle())
+                    .overlay(Circle().stroke(DS.Palette.weight, lineWidth: 2.5))
+                    .frame(maxWidth: .infinity)
+
+                // Emoji grid
+                let cols = Array(repeating: GridItem(.flexible(), spacing: DS.Space.s), count: 6)
+                LazyVGrid(columns: cols, spacing: DS.Space.s) {
+                    ForEach(UserProfile.avatarOptions, id: \.self) { emoji in
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.12)) { avatar = emoji }
+                        } label: {
+                            Text(emoji)
+                                .font(.system(size: 26))
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                                .background(
+                                    avatar == emoji
+                                        ? DS.Palette.weight.opacity(0.12)
+                                        : Color.clear,
+                                    in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                )
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
-            .padding(.vertical, 4)
+            .padding(DS.Space.cardPaddingHero)
+            .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
     }
+
+    // MARK: - Details section
 
     private var detailsSection: some View {
-        Section("Details") {
-            TextField("Name", text: $name).autocorrectionDisabled()
-            Picker("Sex", selection: $isMale) {
-                Text("Male").tag(true)
-                Text("Female").tag(false)
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            sectionLabel("DETAILS")
+            VStack(spacing: 0) {
+                // Name
+                HStack {
+                    Text("Name")
+                        .font(DS.Typeface.body)
+                        .foregroundStyle(DS.Palette.label)
+                    Spacer()
+                    TextField("Required", text: $name)
+                        .multilineTextAlignment(.trailing)
+                        .font(DS.Typeface.body)
+                        .foregroundStyle(DS.Palette.label)
+                        .autocorrectionDisabled()
+                }
+                .padding(.horizontal, DS.Space.l)
+                .frame(minHeight: 52)
+
+                Divider().padding(.leading, DS.Space.l)
+
+                // Sex
+                HStack {
+                    Text("Sex")
+                        .font(DS.Typeface.body)
+                        .foregroundStyle(DS.Palette.label)
+                    Spacer()
+                    Picker("", selection: $isMale) {
+                        Text("Male").tag(true)
+                        Text("Female").tag(false)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 180)
+                }
+                .padding(.horizontal, DS.Space.l)
+                .frame(minHeight: 52)
+
+                Divider().padding(.leading, DS.Space.l)
+
+                // Date of birth
+                HStack {
+                    Text("Date of birth")
+                        .font(DS.Typeface.body)
+                        .foregroundStyle(DS.Palette.label)
+                    Spacer()
+                    DatePicker("", selection: $dateOfBirth, in: dobRange, displayedComponents: .date)
+                        .labelsHidden()
+                }
+                .padding(.horizontal, DS.Space.l)
+                .frame(minHeight: 52)
             }
-            .pickerStyle(.segmented)
-            DatePicker("Date of birth", selection: $dateOfBirth,
-                       in: dobRange, displayedComponents: .date)
+            .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
     }
+
+    // MARK: - Height section
 
     private var heightSection: some View {
-        Section {
-            Picker("Unit", selection: $heightUnitRaw) {
-                Text("cm").tag(HeightUnit.cm.rawValue)
-                Text("ft · in").tag(HeightUnit.ftIn.rawValue)
-            }
-            .pickerStyle(.segmented)
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            sectionLabel("HEIGHT")
+            VStack(spacing: 0) {
+                // Unit picker
+                HStack {
+                    Text("Unit")
+                        .font(DS.Typeface.body)
+                        .foregroundStyle(DS.Palette.label)
+                    Spacer()
+                    Picker("", selection: $heightUnitRaw) {
+                        Text("cm").tag(HeightUnit.cm.rawValue)
+                        Text("ft · in").tag(HeightUnit.ftIn.rawValue)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 160)
+                }
+                .padding(.horizontal, DS.Space.l)
+                .frame(minHeight: 52)
 
-            if heightUnit == .cm {
-                Stepper("\(Int(heightCm)) cm", value: $heightCm, in: 100...220, step: 1)
-            } else {
-                Stepper("\(feetBinding.wrappedValue) ft",   value: feetBinding,   in: 3...7)
-                Stepper("\(inchesBinding.wrappedValue) in", value: inchesBinding, in: 0...11)
+                Divider().padding(.leading, DS.Space.l)
+
+                // Value + stepper
+                HStack {
+                    Text("Value")
+                        .font(DS.Typeface.body)
+                        .foregroundStyle(DS.Palette.label)
+                    Spacer()
+                    Text(heightDisplayString)
+                        .font(.system(size: 20, weight: .bold).monospacedDigit())
+                        .foregroundStyle(DS.Palette.label)
+                        .padding(.trailing, DS.Space.s)
+
+                    // − + buttons
+                    HStack(spacing: 1) {
+                        Button {
+                            let step = heightUnit == .cm ? 1.0 : 2.54
+                            heightCm = max(100, heightCm - step)
+                        } label: {
+                            Image(systemName: "minus")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(DS.Palette.label)
+                                .frame(width: 34, height: 34)
+                                .background(DS.Palette.ground,
+                                            in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+
+                        Button {
+                            let step = heightUnit == .cm ? 1.0 : 2.54
+                            heightCm = min(220, heightCm + step)
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(DS.Palette.label)
+                                .frame(width: 34, height: 34)
+                                .background(DS.Palette.ground,
+                                            in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(2)
+                    .background(DS.Palette.hairline, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .padding(.horizontal, DS.Space.l)
+                .frame(minHeight: 52)
             }
-        } header: {
-            Text("Height")
-        } footer: {
-            let mirror = heightUnit == .cm
-                ? "\(feetBinding.wrappedValue) ft \(inchesBinding.wrappedValue) in"
-                : "\(Int(heightCm)) cm"
-            Text("≈ \(mirror)").foregroundStyle(.secondary)
+            .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+            Text("≈ \(heightConversionHint)")
+                .font(DS.Typeface.caption)
+                .foregroundStyle(DS.Palette.tertiaryLabel)
+                .padding(.leading, DS.Space.xs)
         }
     }
+
+    // MARK: - Primary section
 
     private var primarySection: some View {
-        Section {
-            Toggle(isOn: primaryLocked ? .constant(true) : $isPrimary) {
-                Label("Primary user", systemImage: "star.fill")
-                    .foregroundStyle(isPrimary || primaryLocked ? .yellow : .secondary)
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            HStack {
+                Image(systemName: "star.fill")
+                    .foregroundStyle(.yellow)
+                Text("Primary user")
+                    .font(DS.Typeface.bodyMedium)
+                    .foregroundStyle(DS.Palette.label)
+                Spacer()
+                Toggle("", isOn: primaryLocked ? .constant(true) : $isPrimary)
+                    .labelsHidden()
+                    .disabled(primaryLocked)
             }
-            .disabled(primaryLocked)
-        } footer: {
-            Text(primaryLocked
-                 ? "This is your primary profile — readings sync to Apple Health."
-                 : "Only the primary user's readings are written to Apple Health. Others are stored locally.")
+            .padding(.horizontal, DS.Space.l)
+            .frame(minHeight: 52)
+            .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+            Text(primaryFooterNote)
+                .font(DS.Typeface.caption)
+                .foregroundStyle(DS.Palette.secondaryLabel)
+                .padding(.leading, DS.Space.xs)
+                .animation(.easeInOut(duration: 0.2), value: isPrimary)
         }
     }
 
-    // MARK: Save — just calls the closure; no SwiftData here
+    // MARK: - Helpers
+
+    private func sectionLabel(_ title: String) -> some View {
+        Text(title)
+            .font(DS.Typeface.dateCaps)
+            .tracking(0.04 * 13)
+            .foregroundStyle(DS.Palette.secondaryLabel)
+    }
 
     private func save() {
         let shouldBePrimary = isPrimary || isFirstProfile
@@ -338,5 +572,157 @@ struct ProfileEditView: View {
             avatar:      avatar
         ))
         dismiss()
+    }
+}
+
+// MARK: - UserSwitcherSheet
+// Presented from the Home avatar button. Lets the active user switch and
+// provides a shortcut to add a new family member.
+
+struct UserSwitcherSheet: View {
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss)      private var dismiss
+    @Query(sort: \UserProfile.createdAt) private var profiles: [UserProfile]
+    @AppStorage("activeUserID") private var activeUserIDString: String = ""
+
+    @State private var showingAdd = false
+
+    // MARK: Derived
+
+    private var activeProfile: UserProfile? {
+        if let uuid = UUID(uuidString: activeUserIDString),
+           let match = profiles.first(where: { $0.id == uuid }) { return match }
+        return profiles.first(where: { $0.isPrimary }) ?? profiles.first
+    }
+
+    // MARK: Body
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: DS.Space.l) {
+                    profileListCard
+                    addFamilyCard
+                }
+                .padding(DS.Space.screenGutter)
+                .padding(.bottom, 40)
+            }
+            .background(DS.Palette.ground.ignoresSafeArea())
+            .navigationTitle("Switch Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .foregroundStyle(DS.Palette.weight)
+                }
+            }
+        }
+        .sheet(isPresented: $showingAdd) {
+            ProfileEditView(existingProfile: nil, isFirstProfile: profiles.isEmpty) { data in
+                commitAdd(data: data)
+            }
+        }
+    }
+
+    // MARK: - Profile list card
+
+    private var profileListCard: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(profiles.enumerated()), id: \.element.id) { idx, profile in
+                switcherRow(profile)
+                if idx < profiles.count - 1 {
+                    Divider().padding(.leading, 72)
+                }
+            }
+        }
+        .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private func switcherRow(_ profile: UserProfile) -> some View {
+        let isActive = profile.id == activeProfile?.id
+        return Button {
+            activeUserIDString = profile.id.uuidString
+            dismiss()
+        } label: {
+            HStack(spacing: DS.Space.m) {
+                Text(profile.avatar)
+                    .font(.system(size: 26))
+                    .frame(width: 48, height: 48)
+                    .background(DS.Palette.ground, in: Circle())
+
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: DS.Space.xs) {
+                        Text(profile.name)
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(DS.Palette.label)
+                        if profile.isPrimary {
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.yellow)
+                        }
+                    }
+                    Text(profile.subtitle + (profile.isPrimary ? " · Primary" : ""))
+                        .font(DS.Typeface.footnote)
+                        .foregroundStyle(DS.Palette.secondaryLabel)
+                }
+
+                Spacer()
+
+                if isActive {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(DS.Palette.weight)
+                }
+            }
+            .padding(.horizontal, DS.Space.l)
+            .frame(minHeight: 68)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Add family member card
+
+    private var addFamilyCard: some View {
+        Button { showingAdd = true } label: {
+            HStack(spacing: DS.Space.m) {
+                Image(systemName: "plus")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(DS.Palette.weight)
+                    .frame(width: 44, height: 44)
+                    .background(DS.Palette.weight.opacity(0.12), in: Circle())
+
+                Text("Add family member")
+                    .font(DS.Typeface.bodyMedium)
+                    .foregroundStyle(DS.Palette.weight)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(DS.Palette.tertiaryLabel)
+            }
+            .padding(.horizontal, DS.Space.l)
+            .frame(minHeight: 64)
+            .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - SwiftData write
+
+    private func commitAdd(data: ProfileFormData) {
+        if data.isPrimary {
+            profiles.forEach { $0.isPrimary = false }
+        }
+        context.insert(UserProfile(
+            name:        data.name,
+            isMale:      data.isMale,
+            dateOfBirth: data.dateOfBirth,
+            heightCm:    data.heightCm,
+            isPrimary:   data.isPrimary,
+            avatar:      data.avatar
+        ))
+        try? context.save()
     }
 }
