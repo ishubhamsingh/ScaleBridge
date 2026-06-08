@@ -258,7 +258,7 @@ struct HistoryView: View {
             HStack(alignment: .lastTextBaseline, spacing: 3) {
                 Image(systemName: change.delta < 0 ? "chevron.down" : "chevron.up")
                     .font(.system(size: 11, weight: .bold))
-                Text(String(format: "%.1f \(chartDisplayUnit)", abs(change.delta)))
+                Text(String(format: "%.1f", abs(change.delta)) + (chartDisplayUnit.isEmpty ? "" : " \(chartDisplayUnit)"))
                     .font(.system(size: 22, weight: .bold).monospacedDigit())
             }
             .foregroundStyle(change.good ? DS.Palette.positive : DS.Palette.bodyFat)

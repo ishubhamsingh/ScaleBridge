@@ -143,7 +143,7 @@ struct MetricDetailView: View {
                     Image(systemName: delta <= 0 ? "chevron.down" : "chevron.up")
                         .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(accent)
-                    Text(String(format: "%.\(metric.decimals)f \(displayUnit)", abs(delta)))
+                    Text(String(format: "%.\(metric.decimals)f", abs(delta)) + (displayUnit.isEmpty ? "" : " \(displayUnit)"))
                         .font(DS.Typeface.footnote)
                         .foregroundStyle(accent)
                     Text("from \(daysSince(prevEntry.date)) · Last reading \(latestEntry.date.formatted(.dateTime.hour().minute()))")
