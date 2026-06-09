@@ -70,7 +70,7 @@ struct OnboardingView: View {
     private var featureList: some View {
         VStack(alignment: .leading, spacing: DS.Space.xl) {
             featureRow(
-                icon: "bluetooth",
+                icon: "antenna.radiowaves.left.and.right",
                 color: .indigo,
                 title: "Pair once, forget about it",
                 body: "Step on your QN/Yolanda scale and ScaleBridge captures weight, fat, muscle, water, BMI, and bone — all in one shot."
