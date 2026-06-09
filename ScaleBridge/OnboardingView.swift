@@ -31,22 +31,12 @@ struct OnboardingView: View {
     // MARK: - App icon
 
     private var appIcon: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(red: 0.42, green: 0.25, blue: 0.82), Color.indigo],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 120, height: 120)
-                .shadow(color: Color.indigo.opacity(0.3), radius: 24, x: 0, y: 12)
-            Image(systemName: "scalemass")
-                .font(.system(size: 50, weight: .light))
-                .foregroundStyle(.white)
-        }
-        .padding(.bottom, 36)
+        Image("AppIconImage")
+            .resizable()
+            .frame(width: 120, height: 120)
+            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .shadow(color: Color.indigo.opacity(0.3), radius: 24, x: 0, y: 12)
+            .padding(.bottom, 36)
     }
 
     // MARK: - Title block
