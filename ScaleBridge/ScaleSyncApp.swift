@@ -89,6 +89,7 @@ struct RootTabView: View {
                 SettingsTabView()
             }
         }
+        .tabBarMinimizeBehavior(.onScrollDown)
         .environmentObject(router)
     }
 }
