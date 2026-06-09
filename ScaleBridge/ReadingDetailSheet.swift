@@ -123,65 +123,54 @@ struct ReadingDetailSheet: View {
 
     // MARK: - Body Composition
 
+    private var isMale: Bool { weighIn.user?.isMale ?? true }
+
     private var compositionSection: some View {
         VStack(alignment: .leading, spacing: DS.Space.s) {
             SectionHeader(title: "Body Composition")
 
             VStack(spacing: 0) {
-                compRow(.bodyFat, value: weighIn.fatPercent.map    { String(format: "%.1f%%", $0) })
+                compRow(.bodyFat,
+                        value: weighIn.fatPercent.map    { String(format: "%.1f%%", $0) },
+                        classification: HomeClassify.classify(.bodyFat, value: weighIn.fatPercent, isMale: isMale))
                 Divider().padding(.leading, 52)
-                compRow(.muscle,  value: weighIn.musclePercent.map { String(format: "%.1f%%", $0) })
+                compRow(.muscle,
+                        value: weighIn.musclePercent.map { String(format: "%.1f%%", $0) },
+                        classification: HomeClassify.classify(.muscle, value: weighIn.musclePercent, isMale: isMale))
                 Divider().padding(.leading, 52)
-                compRow(.water,   value: weighIn.waterPercent.map  { String(format: "%.1f%%", $0) })
+                compRow(.water,
+                        value: weighIn.waterPercent.map  { String(format: "%.1f%%", $0) },
+                        classification: HomeClassify.classify(.water, value: weighIn.waterPercent, isMale: isMale))
                 Divider().padding(.leading, 52)
-                bmiRow
+                compRow(.bmi,
+                        value: weighIn.bmi.map           { String(format: "%.1f", $0) },
+                        classification: HomeClassify.classify(.bmi, value: weighIn.bmi, isMale: isMale))
                 Divider().padding(.leading, 52)
-                compRow(.bone,    value: weighIn.bonePercent.map   { String(format: "%.1f%%", $0) })
+                compRow(.bone,
+                        value: weighIn.bonePercent.map   { String(format: "%.1f%%", $0) })
             }
             .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
     }
 
-    private func compRow(_ metric: BodyMetric, value: String?) -> some View {
-        HStack {
+    private func compRow(_ metric: BodyMetric, value: String?, classification: Classification? = nil) -> some View {
+        HStack(alignment: .center) {
             Image(systemName: metric.symbol)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(metric.color)
                 .frame(width: 28)
-            Text(metric.label)
-                .font(DS.Typeface.body)
-                .foregroundStyle(DS.Palette.label)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(metric.label)
+                    .font(DS.Typeface.body)
+                    .foregroundStyle(DS.Palette.label)
+                if let cl = classification {
+                    ClassificationPill(classification: cl)
+                }
+            }
             Spacer()
             Text(value ?? "—")
                 .font(DS.Typeface.bodyMedium.monospacedDigit())
                 .foregroundStyle(value != nil ? DS.Palette.label : DS.Palette.secondaryLabel)
-        }
-        .padding(.horizontal, DS.Space.l)
-        .frame(height: 48)
-    }
-
-    // BMI row: classification sublabel on the left (value-columns rule)
-    private var bmiRow: some View {
-        HStack {
-            Image(systemName: BodyMetric.bmi.symbol)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(BodyMetric.bmi.color)
-                .frame(width: 28)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("BMI")
-                    .font(DS.Typeface.body)
-                    .foregroundStyle(DS.Palette.label)
-                if let b = weighIn.bmi,
-                   let cl = HomeClassify.classify(.bmi, value: b, isMale: weighIn.user?.isMale ?? true) {
-                    Text(cl.label)
-                        .font(DS.Typeface.caption)
-                        .foregroundStyle(cl.color)
-                }
-            }
-            Spacer()
-            Text(weighIn.bmi.map { String(format: "%.1f", $0) } ?? "—")
-                .font(DS.Typeface.bodyMedium.monospacedDigit())
-                .foregroundStyle(weighIn.bmi != nil ? DS.Palette.label : DS.Palette.secondaryLabel)
         }
         .padding(.horizontal, DS.Space.l)
         .frame(minHeight: 48)

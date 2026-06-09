@@ -29,7 +29,7 @@ struct HistoryView: View {
 
     private var chartPoints: [(date: Date, value: Double)] {
         let raw = filteredWeighIns.reversed().compactMap { w in
-            chartMetric.value(from: w).map { (date: w.date, value: Double($0)) }
+            chartMetric.value(from: w, profile: profile).map { (date: w.date, value: Double($0)) }
         }
         guard chartMetric == .weight, weightUnitRaw == "lb" else { return raw }
         return raw.map { (date: $0.date, value: $0.value * 2.20462) }
@@ -579,41 +579,102 @@ enum HistoryTimeRange: String, CaseIterable, Identifiable {
 }
 
 enum HistoryMetric: String, CaseIterable, Identifiable {
-    case weight = "Weight", bodyFat = "Body Fat", muscle = "Muscle", water = "Water"
+    case weight       = "Weight"
+    case bodyFat      = "Body Fat"
+    case muscle       = "Muscle"
+    case water        = "Water"
+    case bmi          = "BMI"
+    case lean         = "Lean Mass"
+    case bone         = "Bone"
+    case protein      = "Protein"
+    case skeletalMuscle = "Skeletal Muscle"
+    case subcutaneousFat = "Subcut. Fat"
+    case visceralFat  = "Visceral Fat"
+    case muscleMassKg = "Muscle Mass"
+    case bmr          = "BMR"
+    case metabolicAge = "Metabolic Age"
+    case healthScore  = "Health Score"
+    case obesityDegree = "Obesity Degree"
+
     var id: String { rawValue }
 
-    var color: Color {
+    var bodyMetric: BodyMetric {
         switch self {
-        case .weight:  return DS.Palette.weight
-        case .bodyFat: return DS.Palette.bodyFat
-        case .muscle:  return DS.Palette.muscle
-        case .water:   return DS.Palette.water
+        case .weight:         return .weight
+        case .bodyFat:        return .bodyFat
+        case .muscle:         return .muscle
+        case .water:          return .water
+        case .bmi:            return .bmi
+        case .lean:           return .lean
+        case .bone:           return .bone
+        case .protein:        return .protein
+        case .skeletalMuscle: return .skeletalMuscle
+        case .subcutaneousFat: return .subcutaneousFat
+        case .visceralFat:    return .visceralFat
+        case .muscleMassKg:   return .muscleMassKg
+        case .bmr:            return .bmr
+        case .metabolicAge:   return .metabolicAge
+        case .healthScore:    return .healthScore
+        case .obesityDegree:  return .obesityDegree
         }
     }
 
-    var symbol: String {
-        switch self {
-        case .weight:  return BodyMetric.weight.symbol
-        case .bodyFat: return BodyMetric.bodyFat.symbol
-        case .muscle:  return BodyMetric.muscle.symbol
-        case .water:   return BodyMetric.water.symbol
-        }
-    }
+    var color:  Color  { bodyMetric.color }
+    var symbol: String { bodyMetric.symbol }
 
     var unit: String {
-        switch self { case .weight: return "kg"; default: return "%" }
+        switch self {
+        case .weight, .lean, .muscleMassKg: return "kg"
+        case .bmr:          return "kcal"
+        case .metabolicAge: return "yrs"
+        case .bmi, .visceralFat, .healthScore, .obesityDegree: return ""
+        default:            return "%"
+        }
     }
 
     var lowerIsBetter: Bool {
-        switch self { case .weight, .bodyFat: return true; default: return false }
+        switch self {
+        case .bodyFat, .weight, .subcutaneousFat, .visceralFat,
+             .obesityDegree, .metabolicAge, .bmi:
+            return true
+        default:
+            return false
+        }
     }
 
-    func value(from w: WeighIn) -> Float? {
+    func value(from w: WeighIn, profile: UserProfile) -> Float? {
+        let trisa = TrisaBodyComposition(
+            isMale:    profile.isMale,
+            ageYears:  max(profile.age, 1),
+            heightCm:  profile.heightCm
+        )
         switch self {
-        case .weight:  return w.weightKg
-        case .bodyFat: return w.fatPercent
-        case .muscle:  return w.musclePercent
-        case .water:   return w.waterPercent
+        case .weight:         return w.weightKg
+        case .bodyFat:        return w.fatPercent
+        case .muscle:         return w.musclePercent
+        case .water:          return w.waterPercent
+        case .bmi:            return w.bmi
+        case .lean:           return w.leanMassKg
+        case .bone:           return w.bonePercent
+        case .protein:        return w.proteinPercent
+        case .skeletalMuscle: return w.skeletalMusclePercent
+        case .subcutaneousFat: return w.subcutaneousFatPercent
+        case .muscleMassKg:   return w.muscleMassKg
+        case .visceralFat:
+            guard let fat = w.fatPercent, let bmi = w.bmi else { return nil }
+            return profile.isMale ? fat * bmi / 82 : fat * bmi / 96
+        case .bmr:
+            guard let fat = w.fatPercent else { return nil }
+            return trisa.bmr(w.weightKg, fat)
+        case .metabolicAge:
+            guard let fat = w.fatPercent else { return nil }
+            return trisa.metabolicAge(w.weightKg, fat)
+        case .healthScore:
+            guard let fat = w.fatPercent else { return nil }
+            return trisa.healthScore(w.weightKg, fat)
+        case .obesityDegree:
+            guard let fat = w.fatPercent else { return nil }
+            return trisa.obesityDegree(fat)
         }
     }
 }
