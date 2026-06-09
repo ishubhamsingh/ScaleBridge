@@ -202,6 +202,13 @@ struct MetricDetailView: View {
                         .foregroundStyle(DS.Palette.secondaryLabel)
                 }
             }
+
+            // Range gauge — only for metrics that have classification bands
+            if let v = latestValue,
+               let spec = MetricRangeSpec.spec(for: metric, isMale: profile.isMale) {
+                MetricRangeBar(value: v, spec: spec, unit: displayUnit, decimals: metric.decimals)
+                    .padding(.top, DS.Space.s)
+            }
         }
     }
 

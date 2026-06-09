@@ -16,6 +16,7 @@
 		AA000000000000000000010GA /* ReadingDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000GA /* ReadingDetailSheet.swift */; };
 		AA000000000000000000010HA /* MetricDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000HA /* MetricDetailView.swift */; };
 		AA000000000000000000010IA /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000IA /* OnboardingView.swift */; };
+		AA000000000000000000010JA /* MetricRangeBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000JA /* MetricRangeBar.swift */; };
 		AA0000000000000000000101A /* HealthKitWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000001A /* HealthKitWriter.swift */; };
 		AA0000000000000000000102A /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002A /* HistoryView.swift */; };
 		AA0000000000000000000103A /* ProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000003A /* ProfilesView.swift */; };
@@ -41,6 +42,7 @@
 		AA000000000000000000000GA /* ReadingDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingDetailSheet.swift; sourceTree = "<group>"; };
 		AA000000000000000000000HA /* MetricDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricDetailView.swift; sourceTree = "<group>"; };
 		AA000000000000000000000IA /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		AA000000000000000000000JA /* MetricRangeBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricRangeBar.swift; sourceTree = "<group>"; };
 		AA0000000000000000000001A /* HealthKitWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitWriter.swift; sourceTree = "<group>"; };
 		AA0000000000000000000002A /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		AA0000000000000000000003A /* ProfilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilesView.swift; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 				AA000000000000000000000GA /* ReadingDetailSheet.swift */,
 				AA000000000000000000000HA /* MetricDetailView.swift */,
 				AA000000000000000000000IA /* OnboardingView.swift */,
+				AA000000000000000000000JA /* MetricRangeBar.swift */,
 				AA0000000000000000000001A /* HealthKitWriter.swift */,
 				AA0000000000000000000002A /* HistoryView.swift */,
 				AA0000000000000000000003A /* ProfilesView.swift */,
@@ -196,6 +199,7 @@
 				AA000000000000000000010GA /* ReadingDetailSheet.swift in Sources */,
 				AA000000000000000000010HA /* MetricDetailView.swift in Sources */,
 				AA000000000000000000010IA /* OnboardingView.swift in Sources */,
+				AA000000000000000000010JA /* MetricRangeBar.swift in Sources */,
 				AA0000000000000000000101A /* HealthKitWriter.swift in Sources */,
 				AA0000000000000000000102A /* HistoryView.swift in Sources */,
 				AA0000000000000000000103A /* ProfilesView.swift in Sources */,
