@@ -35,21 +35,72 @@ struct MetricDetailView: View {
 
     private func value(from w: WeighIn) -> Float? {
         let lb = weightUnitRaw == "lb"
+        let kgToLb: (Float) -> Float = { $0 * 2.20462 }
+        // Profile-dependent metrics computed here (not on WeighIn) to avoid
+        // cross-@Observable access that causes render loops on iOS 27+.
+        let trisa = TrisaBodyComposition(
+            isMale: profile.isMale,
+            ageYears: max(profile.age, 1),
+            heightCm: profile.heightCm
+        )
         switch metric {
-        case .weight:  return lb ? w.weightKg * 2.20462 : w.weightKg
-        case .bodyFat: return w.fatPercent
-        case .muscle:  return w.musclePercent
-        case .water:   return w.waterPercent
-        case .bmi:     return w.bmi
-        case .lean:    return w.leanMassKg.map { lb ? $0 * 2.20462 : $0 }
-        case .bone:    return w.bonePercent
+        case .weight:          return lb ? kgToLb(w.weightKg) : w.weightKg
+        case .bodyFat:         return w.fatPercent
+        case .muscle:          return w.musclePercent
+        case .water:           return w.waterPercent
+        case .bmi:             return w.bmi
+        case .lean:            return w.leanMassKg.map  { lb ? kgToLb($0) : $0 }
+        case .bone:            return w.bonePercent
+        case .protein:         return w.proteinPercent
+        case .skeletalMuscle:  return w.skeletalMusclePercent
+        case .subcutaneousFat: return w.subcutaneousFatPercent
+        case .muscleMassKg:    return w.muscleMassKg.map    { lb ? kgToLb($0) : $0 }
+        case .mineralSalt:     return w.mineralSaltKg.map   { lb ? kgToLb($0) : $0 }
+        case .visceralFat:
+            guard let fat = w.fatPercent, let b = w.bmi else { return nil }
+            return profile.isMale ? fat * b / 82 : fat * b / 96
+        case .bmr:
+            guard let fat = w.fatPercent else { return nil }
+            return trisa.bmr(w.weightKg, fat)
+        case .metabolicAge:
+            guard let fat = w.fatPercent else { return nil }
+            return trisa.metabolicAge(w.weightKg, fat)
+        case .standardWeight:
+            let sw = trisa.standardWeight()
+            return lb ? kgToLb(sw) : sw
+        case .bestVisualWeight:
+            guard let lean = w.leanMassKg else { return nil }
+            let bvw = trisa.bestVisualWeight(lean)
+            return lb ? kgToLb(bvw) : bvw
+        case .weightControl:
+            let wc = trisa.weightControl(w.weightKg)
+            return lb ? kgToLb(wc) : wc
+        case .fatControl:
+            guard let fat = w.fatPercent else { return nil }
+            let fc = trisa.fatControl(w.weightKg, fat)
+            return lb ? kgToLb(fc) : fc
+        case .muscleControl:
+            guard let fat = w.fatPercent else { return nil }
+            let mc = trisa.muscleControl(w.weightKg, fat)
+            return lb ? kgToLb(mc) : mc
+        case .obesityDegree:
+            guard let fat = w.fatPercent else { return nil }
+            return trisa.obesityDegree(fat)
+        case .healthScore:
+            guard let fat = w.fatPercent else { return nil }
+            return trisa.healthScore(w.weightKg, fat)
         }
     }
 
     private var displayUnit: String {
+        let lb = weightUnitRaw == "lb"
         switch metric {
-        case .weight, .lean: return weightUnitRaw == "lb" ? "lb" : "kg"
-        default: return metric.unit
+        case .weight, .lean, .muscleMassKg, .mineralSalt,
+             .bestVisualWeight, .standardWeight,
+             .weightControl, .fatControl, .muscleControl:
+            return lb ? "lb" : "kg"
+        default:
+            return metric.unit
         }
     }
 
@@ -566,7 +617,7 @@ private extension BodyMetric {
         case .bodyFat:
             return "Body fat percentage is the proportion of fat relative to total body weight. Healthy ranges vary by age and sex. Trend direction matters more than any single reading."
         case .muscle:
-            return "Skeletal muscle mass indicates the amount of muscle in your body. Building muscle supports metabolism, strength, and long-term health outcomes."
+            return "Total muscle mass percentage includes both skeletal and smooth muscle. Building muscle supports metabolism, strength, and long-term health outcomes."
         case .water:
             return "Total body water reflects hydration status. Values fluctuate throughout the day. Consistent readings over time give the most meaningful picture."
         case .bmi:
@@ -575,6 +626,36 @@ private extension BodyMetric {
             return "Lean mass is your total weight minus body fat — it includes muscle, bone, organs, and water. A rising lean mass trend alongside stable weight signals positive body composition."
         case .bone:
             return "Bone mass reflects the mineral content of your skeleton. It is relatively stable day-to-day and changes slowly with exercise and nutrition over months."
+        case .bmr:
+            return "Basal Metabolic Rate (BMR) is the number of calories your body burns at complete rest. Estimated using the Mifflin-St Jeor equation from weight, height, age, and sex. A higher BMR means a faster resting metabolism."
+        case .metabolicAge:
+            return "Metabolic age compares your BMR to the BMR expected for a person of standard weight at your height and sex. A metabolic age below your actual age suggests a fast, youthful metabolism."
+        case .protein:
+            return "Protein mass is estimated as ~20% of your lean body mass. Adequate protein supports muscle repair, immune function, and every cellular process in the body."
+        case .skeletalMuscle:
+            return "Skeletal muscle is the subset of muscle you consciously control — the muscles attached to bone. It represents roughly 68% of total muscle mass and is the primary target of resistance training."
+        case .subcutaneousFat:
+            return "Subcutaneous fat sits just beneath the skin and makes up roughly 90% of total body fat. Unlike visceral fat, it poses less immediate metabolic risk but still affects overall body composition."
+        case .visceralFat:
+            return "Visceral fat surrounds the internal organs in the abdominal cavity. Even at a healthy weight, elevated visceral fat is associated with increased cardiometabolic risk. Estimated from body fat % and BMI."
+        case .muscleMassKg:
+            return "Muscle mass in kilograms is the absolute weight of all muscle tissue in your body. Tracking this alongside body weight reveals whether changes are driven by muscle gain or loss."
+        case .mineralSalt:
+            return "Mineral salt (body minerals) is estimated as ~1.6% of lean body mass. Minerals including calcium, phosphorus, and electrolytes are essential for bone strength, nerve conduction, and fluid balance."
+        case .bestVisualWeight:
+            return "Best visual weight is the estimated body weight at which your current lean mass would reach an ideal body-fat percentage (21% for males, 28% for females). It represents a realistic composition target."
+        case .standardWeight:
+            return "Standard weight is your ideal body weight calculated using the Lorentz formula from height and sex. It provides a reference point for healthy weight goals, independent of current body composition."
+        case .weightControl:
+            return "Weight control is the difference between your standard (ideal) weight and your current weight. A negative value means you are above standard weight; a positive value means you are below it."
+        case .fatControl:
+            return "Fat control shows how much fat mass (kg) you would need to lose to reach the ideal fat percentage at standard weight. A negative value indicates excess fat relative to that target."
+        case .muscleControl:
+            return "Muscle control shows the difference between your current lean mass and the ideal lean mass at standard weight. Near zero means your lean composition is already on target."
+        case .obesityDegree:
+            return "Obesity degree measures how far your body fat percentage is above the reference ideal (16.5% for males, 24% for females). Near zero is ideal; higher values indicate excess fat accumulation."
+        case .healthScore:
+            return "Health score is a composite estimate (0–100) derived from how close your BMI and body fat percentage are to their ideal values. It is an orientation guide, not a medical assessment."
         }
     }
 
@@ -584,7 +665,7 @@ private extension BodyMetric {
         case .bodyFat: return "Syncs to Apple Health under Body Fat Percentage."
         case .lean:    return "Syncs to Apple Health under Lean Body Mass. Computed as weight × (1 − body fat %) — only available when body fat data is present."
         case .bmi:     return "Syncs to Apple Health under Body Mass Index."
-        case .muscle, .water, .bone:
+        default:
             return "Apple Health has no native type for this metric — it is stored in ScaleBridge only."
         }
     }

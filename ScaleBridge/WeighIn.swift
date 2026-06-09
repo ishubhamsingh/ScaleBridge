@@ -3,18 +3,15 @@ import SwiftData
 
 // MARK: - WeighIn
 //
-// One persisted measurement record. Weight and impedance come off the wire;
-// the body-composition fields are computed by QNScaleParser / TrisaBodyComposition
-// before being handed here. leanMassKg and fatMassKg are derived on-the-fly
-// so they don't need their own columns.
-//
-// The `syncedToHealthKit` flag is set to true after a successful HealthKit
-// save, so we never double-write if the app is opened again near the scale.
+// One persisted measurement record. Only the raw + Trisa-computed fields are
+// stored as SwiftData columns. Extended body-comp metrics (BMR, skeletal muscle,
+// visceral fat, etc.) are derived on-the-fly from these stored values + the
+// linked UserProfile, so no schema migration is needed when the metric set grows.
 
 @Model
 final class WeighIn {
 
-    // MARK: Stored properties
+    // MARK: Stored properties (schema-stable)
 
     @Attribute(.unique) var id: UUID
     var date: Date
@@ -53,7 +50,7 @@ final class WeighIn {
     }
 }
 
-// MARK: - Derived metrics
+// MARK: - Core derived metrics (no profile needed)
 
 extension WeighIn {
     var leanMassKg: Float? {
@@ -65,13 +62,35 @@ extension WeighIn {
         return weightKg * (f / 100)
     }
 
-    // MARK: Formatted strings (used in list rows and chart tooltips)
+    // Simple single-field derivatives
+    var proteinPercent:         Float? { fatPercent.map         { (100 - $0) * 0.204 } }
+    var skeletalMusclePercent:  Float? { musclePercent.map      { $0 * 0.679 } }
+    var subcutaneousFatPercent: Float? { fatPercent.map         { $0 * 0.9 } }
+    var muscleMassKg:           Float? { musclePercent.map      { weightKg * $0 / 100 } }
+    var mineralSaltKg:          Float? { leanMassKg.map         { $0 * 0.016 } }
+    // visceralFatPercent also accesses user?.isMale; compute at call site with a known profile.
+}
 
-    var weightString:  String { String(format: "%.1f kg", weightKg) }
-    var fatString:     String { fatPercent.map    { String(format: "%.1f%%", $0) } ?? "—" }
-    var waterString:   String { waterPercent.map  { String(format: "%.1f%%", $0) } ?? "—" }
-    var muscleString:  String { musclePercent.map { String(format: "%.1f%%", $0) } ?? "—" }
-    var boneString:    String { bonePercent.map   { String(format: "%.1f%%", $0) } ?? "—" }
-    var bmiString:     String { bmi.map           { String(format: "%.1f",   $0) } ?? "—" }
-    var leanString:    String { leanMassKg.map    { String(format: "%.1f kg",$0) } ?? "—" }
+// Profile-dependent metrics (bmr, metabolicAge, standardWeight, bestVisualWeight,
+// weightControl, fatControl, muscleControl, obesityDegree, healthScore) are NOT
+// computed here to avoid cross-@Observable access on iOS 27+, which can trigger
+// infinite view re-render cycles. Callers that have a UserProfile in scope should
+// use TrisaBodyComposition directly. See HomeView.tileValue / MetricDetailView.value.
+
+// MARK: - Formatted strings (list rows and chart tooltips)
+
+extension WeighIn {
+    var weightString:             String { String(format: "%.1f kg",  weightKg) }
+    var fatString:                String { fatPercent.map    { String(format: "%.1f%%",   $0) } ?? "—" }
+    var waterString:              String { waterPercent.map  { String(format: "%.1f%%",   $0) } ?? "—" }
+    var muscleString:             String { musclePercent.map { String(format: "%.1f%%",   $0) } ?? "—" }
+    var boneString:               String { bonePercent.map   { String(format: "%.1f%%",   $0) } ?? "—" }
+    var bmiString:                String { bmi.map           { String(format: "%.1f",     $0) } ?? "—" }
+    var leanString:               String { leanMassKg.map    { String(format: "%.1f kg",  $0) } ?? "—" }
+
+    var proteinString:            String { proteinPercent.map         { String(format: "%.1f%%",  $0) } ?? "—" }
+    var skeletalMuscleString:     String { skeletalMusclePercent.map  { String(format: "%.1f%%",  $0) } ?? "—" }
+    var subcutaneousFatString:    String { subcutaneousFatPercent.map { String(format: "%.1f%%",  $0) } ?? "—" }
+    var muscleMassKgString:       String { muscleMassKg.map           { String(format: "%.1f kg", $0) } ?? "—" }
+    var mineralSaltString:        String { mineralSaltKg.map          { String(format: "%.2f kg", $0) } ?? "—" }
 }

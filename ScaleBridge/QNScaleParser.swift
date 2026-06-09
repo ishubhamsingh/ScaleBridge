@@ -40,6 +40,104 @@ struct TrisaBodyComposition {
             ? 7.829 + (-0.0855 * b - 5.92e-4 * z - 0.0389 * Float(ageYears))
             : 7.98  + (-0.0973 * b - 4.84e-4 * z - 0.036  * Float(ageYears))
     }
+
+    // MARK: - Derived / estimated metrics
+
+    /// Basal Metabolic Rate in kcal/day (Katch-McArdle).
+    /// LBM-based, so extra fat mass doesn't inflate the result. Matches OG app formula.
+    func bmr(_ weightKg: Float, _ fatPct: Float) -> Float {
+        let lbm = weightKg * (1 - fatPct / 100)
+        return 370 + 21.6 * lbm
+    }
+
+    /// Ideal body weight (Lorentz formula) in kg.
+    func standardWeight() -> Float {
+        isMale
+            ? heightCm - 100 - (heightCm - 150) / 4
+            : heightCm - 100 - (heightCm - 150) / 2
+    }
+
+    /// Metabolic age: the age at which a standard-weight person would have your lean-mass-based BMR.
+    /// Uses Katch-McArdle (LBM-based) so extra fat mass doesn't artificially inflate the result.
+    /// At ideal body composition metabolic age ≈ actual age; high fat → older, high muscle → younger.
+    func metabolicAge(_ weightKg: Float, _ fatPct: Float) -> Float {
+        let lbm = weightKg * (1 - fatPct / 100)
+        let lbmBMR: Float = 370 + 21.6 * lbm          // Katch-McArdle
+        let sw = standardWeight()
+        let offset: Float = isMale ? 5 : -161
+        // Solve: 10*sw + 6.25*h - 5*age + offset = lbmBMR
+        let age = (10 * sw + 6.25 * heightCm + offset - lbmBMR) / 5
+        return max(5, age)
+    }
+
+    /// Protein as % of body weight (~20.4% of lean mass).
+    func proteinPercent(_ fatPct: Float) -> Float {
+        (100 - fatPct) * 0.204
+    }
+
+    /// Skeletal muscle is ~67.9% of total muscle mass percentage.
+    func skeletalMusclePercent(_ musclePct: Float) -> Float {
+        musclePct * 0.679
+    }
+
+    /// Subcutaneous fat is ~90% of total body fat percentage.
+    func subcutaneousFatPercent(_ fatPct: Float) -> Float {
+        fatPct * 0.9
+    }
+
+    /// Visceral fat estimated from body fat % and BMI.
+    func visceralFatPercent(_ weightKg: Float, _ fatPct: Float) -> Float {
+        let b = bmi(weightKg)
+        return isMale ? fatPct * b / 82 : fatPct * b / 96
+    }
+
+    /// Muscle mass in kg.
+    func muscleMassKg(_ weightKg: Float, _ musclePct: Float) -> Float {
+        weightKg * musclePct / 100
+    }
+
+    /// Mineral salt mass in kg (~1.6% of lean mass).
+    func mineralSaltKg(_ leanKg: Float) -> Float {
+        leanKg * 0.016
+    }
+
+    /// Target weight at ideal body-fat percentage (male 21%, female 28%).
+    func bestVisualWeight(_ leanKg: Float) -> Float {
+        let idealFatFraction: Float = isMale ? 0.21 : 0.28
+        return leanKg / (1 - idealFatFraction)
+    }
+
+    /// How much weight to gain/lose (kg) to reach standard weight. Negative = need to lose.
+    func weightControl(_ weightKg: Float) -> Float {
+        standardWeight() - weightKg
+    }
+
+    /// How much fat mass (kg) to lose to reach ideal fat% at standard weight. Negative = need to lose.
+    func fatControl(_ weightKg: Float, _ fatPct: Float) -> Float {
+        let idealFatFraction: Float = isMale ? 0.15 : 0.22
+        let currentFatKg = weightKg * fatPct / 100
+        return standardWeight() * idealFatFraction - currentFatKg
+    }
+
+    /// Lean mass delta (kg) vs ideal lean mass at standard weight. Negative = need to gain muscle.
+    func muscleControl(_ weightKg: Float, _ fatPct: Float) -> Float {
+        let idealFatFraction: Float = isMale ? 0.15 : 0.22
+        let leanKg = weightKg * (1 - fatPct / 100)
+        let idealLeanKg = standardWeight() * (1 - idealFatFraction)
+        return idealLeanKg - leanKg
+    }
+
+    /// Excess body fat above ideal (male 16.5%, female 24%). Near 0 = at ideal fat level.
+    func obesityDegree(_ fatPct: Float) -> Float {
+        fatPct - (isMale ? 16.5 : 24.0)
+    }
+
+    /// Composite health score 0–100 derived from BMI and body fat deviation from ideal.
+    func healthScore(_ weightKg: Float, _ fatPct: Float) -> Float {
+        let idealFat: Float = isMale ? 16.5 : 24.0
+        let score = 100 - abs(bmi(weightKg) - 22.5) * 1.5 - abs(fatPct - idealFat) * 0.9
+        return max(0, min(100, score))
+    }
 }
 
 // MARK: - QN / Yolanda scale parser
@@ -144,18 +242,40 @@ final class QNScaleParser: ScaleParser {
     }
 
     private func publish(weightKg: Float, r1: Float, user: ScaleUser) {
-        // openScale's impedance normalization for the Trisa model.
-        let z: Float = r1 < 410 ? 3.0 : 0.3 * (r1 - 400)
+        // QN/Yolanda scales output raw bioelectrical impedance in ohms (typically 400–600 Ω).
+        // Pass it directly — the Trisa normalization (z = 0.3*(r1-400)) was for Trisa hardware
+        // and compresses QN values by ~18×, causing fat% to be ~6% too low.
+        let z: Float = r1
         let lib = TrisaBodyComposition(isMale: user.isMale, ageYears: user.age, heightCm: user.heightCm)
 
-        var m = ScaleMeasurement(weightKg: weightKg, impedance: r1)
-        m.bmi = lib.bmi(weightKg)
-        m.fatPercent = lib.fat(weightKg, z)
-        m.waterPercent = lib.water(weightKg, z)
-        m.musclePercent = lib.muscle(weightKg, z)
-        m.bonePercent = lib.bone(weightKg, z)
+        let fatPct    = lib.fat(weightKg, z)
+        let musclePct = lib.muscle(weightKg, z)
+        let leanKg    = weightKg * (1 - fatPct / 100)
 
-        transport?.log("QN: publish weight=\(weightKg)kg r1=\(r1) z=\(z)")
+        var m = ScaleMeasurement(weightKg: weightKg, impedance: r1)
+        m.bmi           = lib.bmi(weightKg)
+        m.fatPercent    = fatPct
+        m.waterPercent  = lib.water(weightKg, z)
+        m.musclePercent = musclePct
+        m.bonePercent   = lib.bone(weightKg, z)
+
+        m.bmr                    = lib.bmr(weightKg, fatPct)
+        m.metabolicAge           = lib.metabolicAge(weightKg, fatPct)
+        m.proteinPercent         = lib.proteinPercent(fatPct)
+        m.skeletalMusclePercent  = lib.skeletalMusclePercent(musclePct)
+        m.subcutaneousFatPercent = lib.subcutaneousFatPercent(fatPct)
+        m.visceralFatPercent     = lib.visceralFatPercent(weightKg, fatPct)
+        m.muscleMassKg           = lib.muscleMassKg(weightKg, musclePct)
+        m.mineralSaltKg          = lib.mineralSaltKg(leanKg)
+        m.bestVisualWeightKg     = lib.bestVisualWeight(leanKg)
+        m.standardWeightKg       = lib.standardWeight()
+        m.weightControlKg        = lib.weightControl(weightKg)
+        m.fatControlKg           = lib.fatControl(weightKg, fatPct)
+        m.muscleControlKg        = lib.muscleControl(weightKg, fatPct)
+        m.obesityDegree          = lib.obesityDegree(fatPct)
+        m.healthScore            = lib.healthScore(weightKg, fatPct)
+
+        transport?.log("QN: publish weight=\(weightKg)kg r1=\(r1) z=\(z) bmr=\(m.bmr ?? 0) metAge=\(m.metabolicAge ?? 0)")
         onMeasurement?(m)
     }
 

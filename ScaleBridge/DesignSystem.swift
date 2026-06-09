@@ -88,76 +88,153 @@ enum DS {
 // chips, and chart accents.
 
 enum BodyMetric: String, CaseIterable, Identifiable {
+    // Core Trisa metrics
     case weight, bodyFat, muscle, water, bmi, lean, bone
+    // Extended metrics
+    case bmr, metabolicAge, protein, skeletalMuscle
+    case subcutaneousFat, visceralFat, muscleMassKg, mineralSalt
+    case bestVisualWeight, standardWeight
+    case weightControl, fatControl, muscleControl
+    case obesityDegree, healthScore
 
     var id: String { rawValue }
 
     var label: String {
         switch self {
-        case .weight:  "Weight"
-        case .bodyFat: "Body Fat"
-        case .muscle:  "Muscle"
-        case .water:   "Water"
-        case .bmi:     "BMI"
-        case .lean:    "Lean Mass"
-        case .bone:    "Bone"
+        case .weight:          "Weight"
+        case .bodyFat:         "Body Fat"
+        case .muscle:          "Muscle"
+        case .water:           "Water"
+        case .bmi:             "BMI"
+        case .lean:            "Lean Mass"
+        case .bone:            "Bone"
+        case .bmr:             "BMR"
+        case .metabolicAge:    "Metabolic Age"
+        case .protein:         "Protein"
+        case .skeletalMuscle:  "Skeletal Muscle"
+        case .subcutaneousFat: "Subcutaneous Fat"
+        case .visceralFat:     "Visceral Fat"
+        case .muscleMassKg:    "Muscle Mass"
+        case .mineralSalt:     "Mineral Salt"
+        case .bestVisualWeight:"Best Visual Weight"
+        case .standardWeight:  "Standard Weight"
+        case .weightControl:   "Weight Control"
+        case .fatControl:      "Fat Control"
+        case .muscleControl:   "Muscle Control"
+        case .obesityDegree:   "Obesity Degree"
+        case .healthScore:     "Health Score"
         }
     }
 
     var shortLabel: String {
         switch self {
-        case .weight: "Weight"
-        case .bodyFat: "Fat"
-        case .muscle: "Muscle"
-        case .water: "Water"
-        case .bmi: "BMI"
-        case .lean: "Lean"
-        case .bone: "Bone"
+        case .weight:          "Weight"
+        case .bodyFat:         "Fat"
+        case .muscle:          "Muscle"
+        case .water:           "Water"
+        case .bmi:             "BMI"
+        case .lean:            "Lean"
+        case .bone:            "Bone"
+        case .bmr:             "BMR"
+        case .metabolicAge:    "Met. Age"
+        case .protein:         "Protein"
+        case .skeletalMuscle:  "Skel. Muscle"
+        case .subcutaneousFat: "Subcut. Fat"
+        case .visceralFat:     "Visceral Fat"
+        case .muscleMassKg:    "Muscle kg"
+        case .mineralSalt:     "Mineral"
+        case .bestVisualWeight:"Best Weight"
+        case .standardWeight:  "Std. Weight"
+        case .weightControl:   "Wt. Control"
+        case .fatControl:      "Fat Control"
+        case .muscleControl:   "Mus. Control"
+        case .obesityDegree:   "Obesity"
+        case .healthScore:     "Score"
         }
     }
 
     var color: Color {
         switch self {
-        case .weight, .lean: DS.Palette.weight
-        case .bodyFat:       DS.Palette.bodyFat
-        case .muscle:        DS.Palette.muscle
-        case .water:         DS.Palette.water
-        case .bmi:           DS.Palette.bmi
-        case .bone:          DS.Palette.secondaryLabel
+        case .weight, .lean, .muscleMassKg,
+             .bestVisualWeight, .standardWeight,
+             .weightControl:                     DS.Palette.weight
+        case .bodyFat, .subcutaneousFat,
+             .visceralFat, .obesityDegree,
+             .fatControl:                        DS.Palette.bodyFat
+        case .muscle, .skeletalMuscle,
+             .muscleControl:                     DS.Palette.muscle
+        case .water:                             DS.Palette.water
+        case .bmi:                               DS.Palette.bmi
+        case .bone, .mineralSalt:                DS.Palette.secondaryLabel
+        case .bmr, .metabolicAge, .healthScore,
+             .protein:                           DS.Palette.bmi
         }
     }
 
     var symbol: String {
         switch self {
-        case .weight:  "scalemass"
-        case .bodyFat: "drop.fill"
-        case .muscle:  "figure.strengthtraining.traditional"
-        case .water:   "drop"
-        case .bmi:     "ruler"
-        case .lean:    "figure.arms.open"
-        case .bone:    "diamond"
+        case .weight:          "scalemass"
+        case .bodyFat:         "drop.fill"
+        case .muscle:          "figure.strengthtraining.traditional"
+        case .water:           "drop"
+        case .bmi:             "ruler"
+        case .lean:            "figure.arms.open"
+        case .bone:            "diamond"
+        case .bmr:             "flame.fill"
+        case .metabolicAge:    "clock.badge.checkmark"
+        case .protein:         "atom"
+        case .skeletalMuscle:  "figure.run"
+        case .subcutaneousFat: "circle.dashed"
+        case .visceralFat:     "circle.fill"
+        case .muscleMassKg:    "dumbbell.fill"
+        case .mineralSalt:     "sparkles"
+        case .bestVisualWeight:"eye"
+        case .standardWeight:  "target"
+        case .weightControl:   "arrow.up.and.down"
+        case .fatControl:      "minus.circle"
+        case .muscleControl:   "plus.circle"
+        case .obesityDegree:   "exclamationmark.circle"
+        case .healthScore:     "heart.text.square.fill"
         }
     }
 
     var unit: String {
         switch self {
-        case .weight, .lean: "kg"
-        case .bodyFat, .muscle, .water, .bone: "%"
-        case .bmi: ""
+        case .weight, .lean, .muscleMassKg,
+             .mineralSalt, .bestVisualWeight,
+             .standardWeight, .weightControl,
+             .fatControl, .muscleControl:    "kg"
+        case .bodyFat, .muscle, .water,
+             .bone, .protein, .skeletalMuscle,
+             .subcutaneousFat, .visceralFat,
+             .obesityDegree:                "%"
+        case .bmi, .healthScore:            ""
+        case .bmr:                          "kcal"
+        case .metabolicAge:                 "yrs"
         }
     }
 
     var decimals: Int {
         switch self {
-        case .weight, .lean: 1
-        case .bodyFat, .muscle, .water, .bone, .bmi: 1
+        case .bmr, .metabolicAge, .healthScore: 0
+        case .mineralSalt:                      2
+        default:                                1
         }
     }
 
     var lowerIsBetter: Bool {
         switch self {
-        case .weight, .bodyFat, .bmi: return true
-        case .muscle, .water, .lean, .bone: return false
+        case .weight, .bodyFat, .bmi,
+             .subcutaneousFat, .visceralFat,
+             .obesityDegree, .metabolicAge:  return true
+        case .muscle, .water, .lean, .bone,
+             .protein, .skeletalMuscle,
+             .muscleMassKg, .healthScore,
+             .bmr:                           return false
+        // reference / control metrics: neither direction is inherently better
+        case .mineralSalt, .bestVisualWeight,
+             .standardWeight, .weightControl,
+             .fatControl, .muscleControl:    return true
         }
     }
 }

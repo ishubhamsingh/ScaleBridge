@@ -23,6 +23,24 @@ struct ScaleMeasurement {
     var bonePercent: Float?
 
     var bmi: Float?
+
+    // MARK: Derived / estimated metrics (set by parser alongside the Trisa fields)
+    var bmr: Float?                    // kcal/day
+    var metabolicAge: Float?           // years
+    var proteinPercent: Float?         // %
+    var skeletalMusclePercent: Float?  // %
+    var subcutaneousFatPercent: Float? // %
+    var visceralFatPercent: Float?     // %
+    var muscleMassKg: Float?           // kg
+    var mineralSaltKg: Float?          // kg
+    var bestVisualWeightKg: Float?     // kg
+    var standardWeightKg: Float?       // kg
+    var weightControlKg: Float?        // kg (negative = need to lose)
+    var fatControlKg: Float?           // kg (negative = need to lose fat)
+    var muscleControlKg: Float?        // kg (negative = need to gain muscle)
+    var obesityDegree: Float?          // % above ideal fat
+    var healthScore: Float?            // 0–100
+
     /// Lean body mass in kg, derived from weight and fat %.
     var leanMassKg: Float? {
         guard let f = fatPercent else { return nil }

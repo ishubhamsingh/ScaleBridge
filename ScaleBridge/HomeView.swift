@@ -269,15 +269,46 @@ struct HomeView: View {
 
     private var compGrid: some View {
         let isMale = activeProfile?.isMale ?? true
-        return LazyVGrid(
-            columns: [GridItem(.flexible(), spacing: DS.Space.m),
-                      GridItem(.flexible(), spacing: DS.Space.m)],
-            spacing: DS.Space.m
-        ) {
-            compTile(.bodyFat, isMale: isMale)
-            compTile(.muscle,  isMale: isMale)
-            compTile(.water,   isMale: isMale)
-            compTile(.bmi,     isMale: isMale)
+        let twoCol = [GridItem(.flexible(), spacing: DS.Space.m),
+                      GridItem(.flexible(), spacing: DS.Space.m)]
+        return VStack(alignment: .leading, spacing: DS.Space.l) {
+            // Primary body-composition tiles
+            LazyVGrid(columns: twoCol, spacing: DS.Space.m) {
+                compTile(.bodyFat, isMale: isMale)
+                compTile(.muscle,  isMale: isMale)
+                compTile(.water,   isMale: isMale)
+                compTile(.bmi,     isMale: isMale)
+            }
+
+            metricSection("BODY COMPOSITION",
+                metrics: [.lean, .bone, .muscleMassKg, .protein,
+                          .skeletalMuscle, .subcutaneousFat, .visceralFat, .mineralSalt],
+                isMale: isMale)
+
+            metricSection("METABOLISM",
+                metrics: [.bmr, .metabolicAge, .healthScore, .obesityDegree],
+                isMale: isMale)
+
+            metricSection("WEIGHT GOALS",
+                metrics: [.bestVisualWeight, .standardWeight,
+                          .weightControl, .fatControl, .muscleControl],
+                isMale: isMale)
+        }
+    }
+
+    private func metricSection(_ title: String, metrics: [BodyMetric], isMale: Bool) -> some View {
+        let twoCol = [GridItem(.flexible(), spacing: DS.Space.m),
+                      GridItem(.flexible(), spacing: DS.Space.m)]
+        return VStack(alignment: .leading, spacing: DS.Space.s) {
+            Text(title)
+                .font(DS.Typeface.dateCaps)
+                .tracking(0.04 * 13)
+                .foregroundStyle(DS.Palette.secondaryLabel)
+            LazyVGrid(columns: twoCol, spacing: DS.Space.m) {
+                ForEach(metrics) { metric in
+                    compTile(metric, isMale: isMale)
+                }
+            }
         }
     }
 
@@ -384,14 +415,53 @@ struct HomeView: View {
     // MARK: - Helpers
 
     private func tileValue(_ metric: BodyMetric, from w: WeighIn?) -> Float? {
+        // Profile-dependent metrics are computed here (not on WeighIn) to avoid
+        // cross-@Observable access that can cause render loops on iOS 27+.
+        let trisa: TrisaBodyComposition? = activeProfile.map {
+            TrisaBodyComposition(isMale: $0.isMale, ageYears: max($0.age, 1), heightCm: $0.heightCm)
+        }
         switch metric {
-        case .bodyFat: return w?.fatPercent
-        case .muscle:  return w?.musclePercent
-        case .water:   return w?.waterPercent
-        case .bmi:     return w?.bmi
-        case .lean:    return w?.leanMassKg
-        case .weight:  return w?.weightKg
-        case .bone:    return w?.bonePercent
+        case .weight:          return w?.weightKg
+        case .bodyFat:         return w?.fatPercent
+        case .muscle:          return w?.musclePercent
+        case .water:           return w?.waterPercent
+        case .bmi:             return w?.bmi
+        case .lean:            return w?.leanMassKg
+        case .bone:            return w?.bonePercent
+        case .protein:         return w?.proteinPercent
+        case .skeletalMuscle:  return w?.skeletalMusclePercent
+        case .subcutaneousFat: return w?.subcutaneousFatPercent
+        case .muscleMassKg:    return w?.muscleMassKg
+        case .mineralSalt:     return w?.mineralSaltKg
+        case .visceralFat:
+            guard let fat = w?.fatPercent, let b = w?.bmi else { return nil }
+            let isMale = activeProfile?.isMale ?? true
+            return isMale ? fat * b / 82 : fat * b / 96
+        case .bmr:
+            guard let w, let fat = w.fatPercent else { return nil }
+            return trisa?.bmr(w.weightKg, fat)
+        case .metabolicAge:
+            guard let w, let fat = w.fatPercent else { return nil }
+            return trisa?.metabolicAge(w.weightKg, fat)
+        case .standardWeight:  return trisa?.standardWeight()
+        case .bestVisualWeight:
+            guard let lean = w?.leanMassKg else { return nil }
+            return trisa?.bestVisualWeight(lean)
+        case .weightControl:
+            guard let w else { return nil }
+            return trisa?.weightControl(w.weightKg)
+        case .fatControl:
+            guard let w, let fat = w.fatPercent else { return nil }
+            return trisa?.fatControl(w.weightKg, fat)
+        case .muscleControl:
+            guard let w, let fat = w.fatPercent else { return nil }
+            return trisa?.muscleControl(w.weightKg, fat)
+        case .obesityDegree:
+            guard let fat = w?.fatPercent else { return nil }
+            return trisa?.obesityDegree(fat)
+        case .healthScore:
+            guard let w, let fat = w.fatPercent else { return nil }
+            return trisa?.healthScore(w.weightKg, fat)
         }
     }
 
@@ -456,6 +526,31 @@ enum HomeClassify {
             if v < 65 { return .normal }
             if v < 75 { return .high }
             return .veryHigh
+        case .skeletalMuscle:
+            let (lo, hi): (Float, Float) = isMale ? (33, 46) : (25, 38)
+            if v < lo { return .low }
+            if v < hi { return .normal }
+            return .high
+        case .subcutaneousFat:
+            let (lo, hi, vhi): (Float, Float, Float) = isMale ? (5, 18, 23) : (12, 25, 30)
+            if v < lo  { return .low }
+            if v < hi  { return .normal }
+            if v < vhi { return .high }
+            return .veryHigh
+        case .visceralFat:
+            if v < 3  { return .normal }
+            if v < 7  { return .normal }
+            if v < 12 { return .high }
+            return .veryHigh
+        case .healthScore:
+            if v >= 85 { return .normal }
+            if v >= 65 { return .high }
+            return .low
+        case .obesityDegree:
+            if v < 0  { return .low }
+            if v < 5  { return .normal }
+            if v < 10 { return .high }
+            return .veryHigh
         default:
             return nil
         }
@@ -464,8 +559,12 @@ enum HomeClassify {
     /// True when the direction of `delta` is a health improvement for this metric.
     static func isImprovement(_ metric: BodyMetric, delta: Float) -> Bool {
         switch metric {
-        case .muscle, .water, .lean: return delta > 0
-        default:                     return delta < 0
+        case .muscle, .water, .lean, .protein,
+             .skeletalMuscle, .muscleMassKg, .healthScore,
+             .bmr:
+            return delta > 0
+        default:
+            return delta < 0
         }
     }
 }
