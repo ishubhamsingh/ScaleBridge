@@ -30,8 +30,28 @@ struct ScaleSyncApp: App {
     }()
 
     var body: some Scene {
-        WindowGroup { RootTabView() }
+        WindowGroup { AppGate() }
             .modelContainer(container)
+    }
+}
+
+// MARK: - AppGate
+//
+// Shown as the root view. Presents OnboardingView on first launch (no profile
+// + flag not set); transitions to RootTabView once onboarding is complete.
+// The `!profiles.isEmpty` fallback handles data-migration edge cases where
+// a user already has profiles but the flag was never written.
+
+struct AppGate: View {
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @Query private var profiles: [UserProfile]
+
+    var body: some View {
+        if hasCompletedOnboarding || !profiles.isEmpty {
+            RootTabView()
+        } else {
+            OnboardingView()
+        }
     }
 }
 
