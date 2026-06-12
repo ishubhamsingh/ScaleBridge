@@ -1,6 +1,8 @@
 import Foundation
 import CoreBluetooth
 import Combine
+import AudioToolbox
+import UIKit
 
 /// Owns CoreBluetooth, drives the parser, and surfaces state to SwiftUI.
 /// Also acts as the parser's `ScaleTransport`.
@@ -63,6 +65,8 @@ final class ScaleBLEManager: NSObject, ObservableObject {
         guard status == .reading else { return }
         lastMeasurement = m
         status = .done
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        AudioServicesPlaySystemSound(1057)
         log(String(format: "Reading: %.2f kg, fat %.1f%%", m.weightKg, m.fatPercent ?? 0))
         central.stopScan()
         // HealthKit write + SwiftData persistence are handled in ContentView
