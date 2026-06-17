@@ -16,6 +16,7 @@ struct MetricDetailView: View {
 
     @State private var timeRange: MetricTimeRange = .month
     @State private var selectedWeighIn: WeighIn? = nil
+    @State private var showingGoalSheet = false
     @AppStorage("weightUnit") private var weightUnitRaw: String = "kg"
 
     // MARK: Derived
@@ -107,6 +108,45 @@ struct MetricDetailView: View {
     private var latestValue:   Float? { allWeighIns.first.flatMap    { value(from: $0) } }
     private var previousValue: Float? { allWeighIns.dropFirst().first.flatMap { value(from: $0) } }
 
+    // MARK: Goal helpers
+
+    private var goalValueInDisplayUnit: Float? {
+        let lb = weightUnitRaw == "lb"
+        switch metric {
+        case .weight:  return profile.goalWeightKg.map       { lb ? $0 * 2.20462 : $0 }
+        case .bodyFat: return profile.goalBodyFatPercent
+        default:       return nil
+        }
+    }
+
+    private var goalProgress: Double? {
+        guard let goal    = goalValueInDisplayUnit,
+              let current = latestValue,
+              let startF  = allWeighIns.last.flatMap({ value(from: $0) })
+        else { return nil }
+        let totalNeeded = goal - startF
+        guard abs(totalNeeded) > 0.01 else { return 1.0 }
+        let achieved = current - startF
+        return Double(max(0, min(1, achieved / totalNeeded)))
+    }
+
+    private var daysToGoal: Int? {
+        guard let goal    = goalValueInDisplayUnit,
+              let current = latestValue,
+              chartPoints.count >= 2 else { return nil }
+        let delta = goal - current
+        guard abs(delta) > 0.05 else { return 0 }
+        guard let first = chartPoints.first, let last = chartPoints.last else { return nil }
+        let daySpan = max(
+            Calendar.current.dateComponents([.day], from: first.date, to: last.date).day ?? 1, 1
+        )
+        let totalChange = Float(last.value - first.value)
+        guard abs(totalChange) > 0.01 else { return nil }
+        let ratePerDay = totalChange / Float(daySpan)
+        guard (delta > 0 && ratePerDay > 0) || (delta < 0 && ratePerDay < 0) else { return nil }
+        return max(1, Int((delta / ratePerDay).rounded(.up)))
+    }
+
     private var avgValue: Double? {
         guard !chartPoints.isEmpty else { return nil }
         return chartPoints.map(\.value).reduce(0, +) / Double(chartPoints.count)
@@ -146,6 +186,10 @@ struct MetricDetailView: View {
                 previousWeighIn: allWeighIns.first(where: { $0.date < w.date })
             )
             .presentationDetents([.large])
+        }
+        .sheet(isPresented: $showingGoalSheet) {
+            GoalSettingSheet(profile: profile)
+                .presentationDetents([.medium, .large])
         }
     }
 
@@ -206,8 +250,108 @@ struct MetricDetailView: View {
             // Range gauge — only for metrics that have classification bands
             if let v = latestValue,
                let spec = MetricRangeSpec.spec(for: metric, isMale: profile.isMale) {
-                MetricRangeBar(value: v, spec: spec, unit: displayUnit, decimals: metric.decimals)
-                    .padding(.top, DS.Space.s)
+                MetricRangeBar(
+                    value: v,
+                    spec: spec,
+                    unit: displayUnit,
+                    decimals: metric.decimals,
+                    goalValue: goalValueInDisplayUnit
+                )
+                .padding(.top, DS.Space.s)
+            }
+
+            // Goal card — weight and bodyFat only
+            if metric == .weight || metric == .bodyFat {
+                goalCard.padding(.top, DS.Space.xs)
+            }
+        }
+    }
+
+    // MARK: - Goal card
+
+    private var goalCard: some View {
+        Group {
+            if let goal = goalValueInDisplayUnit {
+                VStack(alignment: .leading, spacing: DS.Space.s) {
+                    HStack(spacing: DS.Space.m) {
+                        Image(systemName: "target")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(metric.color)
+                            .frame(width: 44, height: 44)
+                            .background(metric.color.opacity(0.12),
+                                        in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        VStack(alignment: .leading, spacing: 3) {
+                            HStack(alignment: .lastTextBaseline, spacing: 3) {
+                                Text("Goal")
+                                    .font(DS.Typeface.bodyMedium)
+                                    .foregroundStyle(DS.Palette.label)
+                                Text(String(format: "%.\(metric.decimals)f", goal)
+                                     + (displayUnit.isEmpty ? "" : " \(displayUnit)"))
+                                    .font(DS.Typeface.bodyMedium)
+                                    .foregroundStyle(metric.color)
+                            }
+                            if let days = daysToGoal {
+                                Text(days == 0 ? "Goal reached!" : "~\(days) days at current rate")
+                                    .font(DS.Typeface.caption)
+                                    .foregroundStyle(DS.Palette.secondaryLabel)
+                            } else {
+                                Text("Keep logging to see a projection")
+                                    .font(DS.Typeface.caption)
+                                    .foregroundStyle(DS.Palette.secondaryLabel)
+                            }
+                        }
+                        Spacer(minLength: 0)
+                        Button("Edit Goals") { showingGoalSheet = true }
+                            .font(DS.Typeface.bodyMedium)
+                            .foregroundStyle(metric.color)
+                            .frame(height: 32)
+                            .padding(.horizontal, DS.Space.m)
+                            .background(metric.color.opacity(0.12), in: Capsule())
+                            .buttonStyle(.plain)
+                    }
+                    // Progress bar — shows journey from first reading toward goal
+                    if let progress = goalProgress {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ProgressView(value: progress)
+                                .tint(progress >= 1.0 ? DS.Palette.positive : metric.color)
+                            Text(progress >= 1.0 ? "Goal reached!" : "\(Int(progress * 100))% of the way there")
+                                .font(DS.Typeface.caption)
+                                .foregroundStyle(DS.Palette.secondaryLabel)
+                        }
+                        .padding(.top, DS.Space.xs)
+                    }
+                }
+                .padding(DS.Space.m)
+                .background(metric.color.opacity(0.06),
+                             in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            } else {
+                HStack(spacing: DS.Space.m) {
+                    Image(systemName: "target")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(DS.Palette.secondaryLabel)
+                        .frame(width: 44, height: 44)
+                        .background(Color(.systemFill),
+                                    in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("No goal set")
+                            .font(DS.Typeface.bodyMedium)
+                            .foregroundStyle(DS.Palette.label)
+                        Text("Set a target to track your progress")
+                            .font(DS.Typeface.caption)
+                            .foregroundStyle(DS.Palette.secondaryLabel)
+                    }
+                    Spacer(minLength: 0)
+                    Button("Set Goals") { showingGoalSheet = true }
+                        .font(DS.Typeface.bodyMedium)
+                        .foregroundStyle(.white)
+                        .frame(height: 32)
+                        .padding(.horizontal, DS.Space.m)
+                        .background(metric.color, in: Capsule())
+                        .buttonStyle(.plain)
+                }
+                .padding(DS.Space.m)
+                .background(Color(.systemFill),
+                             in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
         }
     }

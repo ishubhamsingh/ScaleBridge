@@ -13,7 +13,7 @@ final class WeighIn {
 
     // MARK: Stored properties (schema-stable)
 
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var date: Date
 
     var weightKg: Float

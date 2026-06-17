@@ -89,6 +89,7 @@ struct MetricRangeBar: View {
     let spec: MetricRangeSpec
     let unit: String
     let decimals: Int
+    var goalValue: Float? = nil
 
     private let barHeight: CGFloat = 10
     private let dotSize:   CGFloat = 18
@@ -112,6 +113,16 @@ struct MetricRangeBar: View {
                     }
                     .clipShape(Capsule())
                     .offset(y: (dotSize - barHeight) / 2)
+
+                    // Goal tick — white vertical capsule at the goal position
+                    if let gv = goalValue {
+                        let gt = CGFloat(spec.t(for: gv))
+                        Capsule()
+                            .fill(.white.opacity(0.9))
+                            .frame(width: 2.5, height: barHeight + 4)
+                            .shadow(color: .black.opacity(0.25), radius: 2)
+                            .offset(x: gt * w - 1.25, y: (dotSize - barHeight) / 2 - 2)
+                    }
 
                     // Band labels centered over each segment
                     ForEach(spec.bands) { band in

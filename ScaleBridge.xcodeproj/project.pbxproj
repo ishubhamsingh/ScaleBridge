@@ -3,10 +3,22 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		76E107CD2FE32865009AB6A6 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76E107CC2FE32865009AB6A6 /* WidgetKit.framework */; };
+		76E107CF2FE32865009AB6A6 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76E107CE2FE32865009AB6A6 /* SwiftUI.framework */; };
+		76E107DE2FE32866009AB6A6 /* ScaleBridgeWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 76E107CA2FE32865009AB6A6 /* ScaleBridgeWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AA0000000000000000000101A /* HealthKitWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000001A /* HealthKitWriter.swift */; };
+		AA0000000000000000000102A /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002A /* HistoryView.swift */; };
+		AA0000000000000000000103A /* ProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000003A /* ProfilesView.swift */; };
+		AA0000000000000000000104A /* QNScaleParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000004A /* QNScaleParser.swift */; };
+		AA0000000000000000000105A /* ScaleBLEManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000005A /* ScaleBLEManager.swift */; };
+		AA0000000000000000000106A /* ScaleCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000006A /* ScaleCore.swift */; };
+		AA0000000000000000000107A /* ScaleSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000007A /* ScaleSyncApp.swift */; };
+		AA0000000000000000000108A /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000008A /* UserProfile.swift */; };
+		AA0000000000000000000109A /* WeighIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000009A /* WeighIn.swift */; };
 		AA000000000000000000010AA /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000AA /* DesignSystem.swift */; };
 		AA000000000000000000010BA /* DesignComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000BA /* DesignComponents.swift */; };
 		AA000000000000000000010CA /* HistoryTabWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000CA /* HistoryTabWrapper.swift */; };
@@ -17,22 +29,51 @@
 		AA000000000000000000010HA /* MetricDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000HA /* MetricDetailView.swift */; };
 		AA000000000000000000010IA /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000IA /* OnboardingView.swift */; };
 		AA000000000000000000010JA /* MetricRangeBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000JA /* MetricRangeBar.swift */; };
-		AA0000000000000000000101A /* HealthKitWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000001A /* HealthKitWriter.swift */; };
-		AA0000000000000000000102A /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002A /* HistoryView.swift */; };
-		AA0000000000000000000103A /* ProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000003A /* ProfilesView.swift */; };
-		AA0000000000000000000104A /* QNScaleParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000004A /* QNScaleParser.swift */; };
-		AA0000000000000000000105A /* ScaleBLEManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000005A /* ScaleBLEManager.swift */; };
-		AA0000000000000000000106A /* ScaleCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000006A /* ScaleCore.swift */; };
-		AA0000000000000000000107A /* ScaleSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000007A /* ScaleSyncApp.swift */; };
-		AA0000000000000000000108A /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000008A /* UserProfile.swift */; };
-		AA0000000000000000000109A /* WeighIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000009A /* WeighIn.swift */; };
+		AA000000000000000000010KA /* GoalSettingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000KA /* GoalSettingSheet.swift */; };
+		AA000000000000000000010LA /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000LA /* SharedStore.swift */; };
 		AA0000000000000000000201A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000200A /* Assets.xcassets */; };
 		AA0000000000000000000450A /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000400A /* CoreBluetooth.framework */; };
 		AA0000000000000000000451A /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000401A /* HealthKit.framework */; };
 		AA0000000000000000000452A /* Combine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000402A /* Combine.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		76E107DC2FE32866009AB6A6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA0000000000000000000304A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 76E107C92FE32865009AB6A6;
+			remoteInfo = ScaleBridgeWidgetsExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		76E107DF2FE32866009AB6A6 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				76E107DE2FE32866009AB6A6 /* ScaleBridgeWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		76E107CA2FE32865009AB6A6 /* ScaleBridgeWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScaleBridgeWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		76E107CC2FE32865009AB6A6 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		76E107CE2FE32865009AB6A6 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		AA0000000000000000000001A /* HealthKitWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitWriter.swift; sourceTree = "<group>"; };
+		AA0000000000000000000002A /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000003A /* ProfilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilesView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000004A /* QNScaleParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QNScaleParser.swift; sourceTree = "<group>"; };
+		AA0000000000000000000005A /* ScaleBLEManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleBLEManager.swift; sourceTree = "<group>"; };
+		AA0000000000000000000006A /* ScaleCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleCore.swift; sourceTree = "<group>"; };
+		AA0000000000000000000007A /* ScaleSyncApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleSyncApp.swift; sourceTree = "<group>"; };
+		AA0000000000000000000008A /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
+		AA0000000000000000000009A /* WeighIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighIn.swift; sourceTree = "<group>"; };
 		AA000000000000000000000AA /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		AA000000000000000000000BA /* DesignComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignComponents.swift; sourceTree = "<group>"; };
 		AA000000000000000000000CA /* HistoryTabWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTabWrapper.swift; sourceTree = "<group>"; };
@@ -43,15 +84,8 @@
 		AA000000000000000000000HA /* MetricDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricDetailView.swift; sourceTree = "<group>"; };
 		AA000000000000000000000IA /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		AA000000000000000000000JA /* MetricRangeBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricRangeBar.swift; sourceTree = "<group>"; };
-		AA0000000000000000000001A /* HealthKitWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitWriter.swift; sourceTree = "<group>"; };
-		AA0000000000000000000002A /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
-		AA0000000000000000000003A /* ProfilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilesView.swift; sourceTree = "<group>"; };
-		AA0000000000000000000004A /* QNScaleParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QNScaleParser.swift; sourceTree = "<group>"; };
-		AA0000000000000000000005A /* ScaleBLEManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleBLEManager.swift; sourceTree = "<group>"; };
-		AA0000000000000000000006A /* ScaleCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleCore.swift; sourceTree = "<group>"; };
-		AA0000000000000000000007A /* ScaleSyncApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleSyncApp.swift; sourceTree = "<group>"; };
-		AA0000000000000000000008A /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
-		AA0000000000000000000009A /* WeighIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighIn.swift; sourceTree = "<group>"; };
+		AA000000000000000000000KA /* GoalSettingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalSettingSheet.swift; sourceTree = "<group>"; };
+		AA000000000000000000000LA /* SharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStore.swift; sourceTree = "<group>"; };
 		AA0000000000000000000200A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA0000000000000000000202A /* ScaleBridge.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ScaleBridge.entitlements; sourceTree = "<group>"; };
 		AA0000000000000000000313A /* ScaleBridge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScaleBridge.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -60,7 +94,30 @@
 		AA0000000000000000000402A /* Combine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Combine.framework; path = System/Library/Frameworks/Combine.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		76E107E22FE32866009AB6A6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 76E107C92FE32865009AB6A6 /* ScaleBridgeWidgetsExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		76E107D02FE32865009AB6A6 /* ScaleBridgeWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (76E107E22FE32866009AB6A6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = ScaleBridgeWidgets; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		76E107C72FE32865009AB6A6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				76E107CF2FE32865009AB6A6 /* SwiftUI.framework in Frameworks */,
+				76E107CD2FE32865009AB6A6 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AA0000000000000000000311A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -84,10 +141,21 @@
 			name = "Recovered References";
 			sourceTree = "<group>";
 		};
+		76E107CB2FE32865009AB6A6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				76E107CC2FE32865009AB6A6 /* WidgetKit.framework */,
+				76E107CE2FE32865009AB6A6 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		AA0000000000000000000300A = {
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000350A /* ScaleBridge */,
+				76E107D02FE32865009AB6A6 /* ScaleBridgeWidgets */,
+				76E107CB2FE32865009AB6A6 /* Frameworks */,
 				AA0000000000000000000312A /* Products */,
 				761530612FD4852300C3C906 /* Recovered References */,
 			);
@@ -97,6 +165,7 @@
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000313A /* ScaleBridge.app */,
+				76E107CA2FE32865009AB6A6 /* ScaleBridgeWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -114,6 +183,8 @@
 				AA000000000000000000000HA /* MetricDetailView.swift */,
 				AA000000000000000000000IA /* OnboardingView.swift */,
 				AA000000000000000000000JA /* MetricRangeBar.swift */,
+				AA000000000000000000000KA /* GoalSettingSheet.swift */,
+				AA000000000000000000000LA /* SharedStore.swift */,
 				AA0000000000000000000001A /* HealthKitWriter.swift */,
 				AA0000000000000000000002A /* HistoryView.swift */,
 				AA0000000000000000000003A /* ProfilesView.swift */,
@@ -132,6 +203,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		76E107C92FE32865009AB6A6 /* ScaleBridgeWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 76E107E32FE32866009AB6A6 /* Build configuration list for PBXNativeTarget "ScaleBridgeWidgetsExtension" */;
+			buildPhases = (
+				76E107C62FE32865009AB6A6 /* Sources */,
+				76E107C72FE32865009AB6A6 /* Frameworks */,
+				76E107C82FE32865009AB6A6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				76E107D02FE32865009AB6A6 /* ScaleBridgeWidgets */,
+			);
+			name = ScaleBridgeWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = ScaleBridgeWidgetsExtension;
+			productReference = 76E107CA2FE32865009AB6A6 /* ScaleBridgeWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		AA0000000000000000000303A /* ScaleBridge */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AA0000000000000000000306A /* Build configuration list for PBXNativeTarget "ScaleBridge" */;
@@ -139,10 +232,12 @@
 				AA0000000000000000000301A /* Sources */,
 				AA0000000000000000000302A /* Resources */,
 				AA0000000000000000000311A /* Frameworks */,
+				76E107DF2FE32866009AB6A6 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				76E107DD2FE32866009AB6A6 /* PBXTargetDependency */,
 			);
 			name = ScaleBridge;
 			productName = ScaleBridge;
@@ -155,6 +250,12 @@
 		AA0000000000000000000304A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 2700;
+				TargetAttributes = {
+					76E107C92FE32865009AB6A6 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+				};
 			};
 			buildConfigurationList = AA0000000000000000000305A /* Build configuration list for PBXProject "ScaleBridge" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -170,11 +271,19 @@
 			projectRoot = "";
 			targets = (
 				AA0000000000000000000303A /* ScaleBridge */,
+				76E107C92FE32865009AB6A6 /* ScaleBridgeWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		76E107C82FE32865009AB6A6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AA0000000000000000000302A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -186,6 +295,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		76E107C62FE32865009AB6A6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AA0000000000000000000301A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -200,6 +316,8 @@
 				AA000000000000000000010HA /* MetricDetailView.swift in Sources */,
 				AA000000000000000000010IA /* OnboardingView.swift in Sources */,
 				AA000000000000000000010JA /* MetricRangeBar.swift in Sources */,
+				AA000000000000000000010KA /* GoalSettingSheet.swift in Sources */,
+				AA000000000000000000010LA /* SharedStore.swift in Sources */,
 				AA0000000000000000000101A /* HealthKitWriter.swift in Sources */,
 				AA0000000000000000000102A /* HistoryView.swift in Sources */,
 				AA0000000000000000000103A /* ProfilesView.swift in Sources */,
@@ -214,7 +332,156 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		76E107DD2FE32866009AB6A6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 76E107C92FE32865009AB6A6 /* ScaleBridgeWidgetsExtension */;
+			targetProxy = 76E107DC2FE32866009AB6A6 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		76E107E02FE32866009AB6A6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = ScaleBridgeWidgets/ScaleBridgeWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A5CX8H4MPQ;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ScaleBridgeWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ScaleBridgeWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ishubhamsingh.ScaleBridge.ScaleBridgeWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		76E107E12FE32866009AB6A6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = ScaleBridgeWidgets/ScaleBridgeWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A5CX8H4MPQ;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ScaleBridgeWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ScaleBridgeWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ishubhamsingh.ScaleBridge.ScaleBridgeWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		AA0000000000000000000307A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -314,6 +581,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		76E107E32FE32866009AB6A6 /* Build configuration list for PBXNativeTarget "ScaleBridgeWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				76E107E02FE32866009AB6A6 /* Debug */,
+				76E107E12FE32866009AB6A6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		AA0000000000000000000305A /* Build configuration list for PBXProject "ScaleBridge" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

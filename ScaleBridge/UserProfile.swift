@@ -14,7 +14,7 @@ final class UserProfile {
 
     // MARK: Stored properties
 
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var name: String
     var isMale: Bool
     /// Stored as date of birth so age auto-updates over time.
@@ -26,6 +26,10 @@ final class UserProfile {
     /// A single emoji shown as the avatar.
     var avatar: String
     var createdAt: Date
+
+    // MARK: Goals (optional — nil means no goal set)
+    var goalWeightKg: Float?
+    var goalBodyFatPercent: Float?
 
     // MARK: Relationship
 
