@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Charts
+import WidgetKit
 
 // MARK: - HomeView
 //
@@ -83,6 +84,18 @@ struct HomeView: View {
                 .presentationDetents([.medium, .large])
         }
         .task { try? await healthKit.requestAuthorization() }
+        .onAppear {
+            if let latest = latestWeighIn { SharedStore.write(weighIn: latest) }
+            if let profile = activeProfile { SharedStore.writeProfileMeta(isMale: profile.isMale) }
+            SharedStore.writeHistory(weighIns: sortedWeighIns)
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+        .onChange(of: sortedWeighIns.count) { _, _ in
+            if let latest = latestWeighIn { SharedStore.write(weighIn: latest) }
+            if let profile = activeProfile { SharedStore.writeProfileMeta(isMale: profile.isMale) }
+            SharedStore.writeHistory(weighIns: sortedWeighIns)
+            WidgetCenter.shared.reloadAllTimelines()
+        }
         .onChange(of: ble.status) { _, newStatus in
             if case .done = newStatus, let m = ble.lastMeasurement {
                 persistMeasurement(m)
@@ -478,6 +491,8 @@ struct HomeView: View {
         guard let user = activeProfile else { return }
         let weighIn = WeighIn(from: measurement, user: user)
         context.insert(weighIn)
+        SharedStore.write(weighIn: weighIn)
+        SharedStore.writeHistory(weighIns: user.sortedWeighIns)
         if user.isPrimary && syncToHealthKit {
             Task {
                 do {
@@ -487,9 +502,11 @@ struct HomeView: View {
                 } catch {
                     try? context.save()
                 }
+                WidgetCenter.shared.reloadAllTimelines()
             }
         } else {
             try? context.save()
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
 }

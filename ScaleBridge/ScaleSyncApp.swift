@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 @main
 struct ScaleSyncApp: App {
@@ -320,6 +321,8 @@ struct ContentView: View {
         let weighIn = WeighIn(from: measurement, user: user)
         context.insert(weighIn)
 
+        SharedStore.write(weighIn: weighIn)
+        SharedStore.writeHistory(weighIns: user.sortedWeighIns)
         if user.isPrimary {
             // Primary user: write to Apple Health asynchronously.
             Task {
@@ -332,10 +335,12 @@ struct ContentView: View {
                     try? context.save()   // still keep the local record
                     ble.log("HealthKit save failed: \(error.localizedDescription)")
                 }
+                WidgetCenter.shared.reloadAllTimelines()
             }
         } else {
             // Non-primary user: local only.
             try? context.save()
+            WidgetCenter.shared.reloadAllTimelines()
             ble.log("Reading saved locally (Health sync is for the primary profile only).")
         }
     }
