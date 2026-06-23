@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		764D998F2FEB2A8E0083696D /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 764D998E2FEB2A8E0083696D /* GoogleService-Info.plist */; };
+		764D99932FEB2BCE0083696D /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 764D99922FEB2BCE0083696D /* FirebaseAuth */; };
+		764D99952FEB2BCE0083696D /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 764D99942FEB2BCE0083696D /* FirebaseFirestore */; };
+		764D99982FEB2BF30083696D /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 764D99972FEB2BF30083696D /* GoogleSignIn */; };
+		764D999A2FEB2BF30083696D /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 764D99992FEB2BF30083696D /* GoogleSignInSwift */; };
 		76E107CD2FE32865009AB6A6 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76E107CC2FE32865009AB6A6 /* WidgetKit.framework */; };
 		76E107CF2FE32865009AB6A6 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76E107CE2FE32865009AB6A6 /* SwiftUI.framework */; };
 		76E107DE2FE32866009AB6A6 /* ScaleBridgeWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 76E107CA2FE32865009AB6A6 /* ScaleBridgeWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -31,6 +36,8 @@
 		AA000000000000000000010JA /* MetricRangeBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000JA /* MetricRangeBar.swift */; };
 		AA000000000000000000010KA /* GoalSettingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000KA /* GoalSettingSheet.swift */; };
 		AA000000000000000000010LA /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000LA /* SharedStore.swift */; };
+		AA000000000000000000010MA /* CloudBackupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000MA /* CloudBackupManager.swift */; };
+		AA000000000000000000010NA /* CloudBackupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000NA /* CloudBackupView.swift */; };
 		AA0000000000000000000201A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000200A /* Assets.xcassets */; };
 		AA0000000000000000000450A /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000400A /* CoreBluetooth.framework */; };
 		AA0000000000000000000451A /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000401A /* HealthKit.framework */; };
@@ -62,6 +69,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		764D998E2FEB2A8E0083696D /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		764D99902FEB2AE50083696D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		76E107CA2FE32865009AB6A6 /* ScaleBridgeWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScaleBridgeWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		76E107CC2FE32865009AB6A6 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		76E107CE2FE32865009AB6A6 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -86,6 +95,10 @@
 		AA000000000000000000000JA /* MetricRangeBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricRangeBar.swift; sourceTree = "<group>"; };
 		AA000000000000000000000KA /* GoalSettingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalSettingSheet.swift; sourceTree = "<group>"; };
 		AA000000000000000000000LA /* SharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStore.swift; sourceTree = "<group>"; };
+		AA000000000000000000000MA /* CloudBackupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudBackupManager.swift; sourceTree = "<group>"; };
+		AA000000000000000000000NA /* CloudBackupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudBackupView.swift; sourceTree = "<group>"; };
+		AA000000000000000000000MA /* CloudBackupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudBackupManager.swift; sourceTree = "<group>"; };
+		AA000000000000000000000NA /* CloudBackupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudBackupView.swift; sourceTree = "<group>"; };
 		AA0000000000000000000200A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA0000000000000000000202A /* ScaleBridge.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ScaleBridge.entitlements; sourceTree = "<group>"; };
 		AA0000000000000000000313A /* ScaleBridge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScaleBridge.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -124,7 +137,11 @@
 			files = (
 				AA0000000000000000000450A /* CoreBluetooth.framework in Frameworks */,
 				AA0000000000000000000451A /* HealthKit.framework in Frameworks */,
+				764D999A2FEB2BF30083696D /* GoogleSignInSwift in Frameworks */,
 				AA0000000000000000000452A /* Combine.framework in Frameworks */,
+				764D99952FEB2BCE0083696D /* FirebaseFirestore in Frameworks */,
+				764D99932FEB2BCE0083696D /* FirebaseAuth in Frameworks */,
+				764D99982FEB2BF30083696D /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,6 +190,7 @@
 		AA0000000000000000000350A /* ScaleBridge */ = {
 			isa = PBXGroup;
 			children = (
+				764D99902FEB2AE50083696D /* Info.plist */,
 				AA000000000000000000000AA /* DesignSystem.swift */,
 				AA000000000000000000000BA /* DesignComponents.swift */,
 				AA000000000000000000000CA /* HistoryTabWrapper.swift */,
@@ -185,6 +203,8 @@
 				AA000000000000000000000JA /* MetricRangeBar.swift */,
 				AA000000000000000000000KA /* GoalSettingSheet.swift */,
 				AA000000000000000000000LA /* SharedStore.swift */,
+				AA000000000000000000000MA /* CloudBackupManager.swift */,
+				AA000000000000000000000NA /* CloudBackupView.swift */,
 				AA0000000000000000000001A /* HealthKitWriter.swift */,
 				AA0000000000000000000002A /* HistoryView.swift */,
 				AA0000000000000000000003A /* ProfilesView.swift */,
@@ -196,6 +216,7 @@
 				AA0000000000000000000009A /* WeighIn.swift */,
 				AA0000000000000000000200A /* Assets.xcassets */,
 				AA0000000000000000000202A /* ScaleBridge.entitlements */,
+				764D998E2FEB2A8E0083696D /* GoogleService-Info.plist */,
 			);
 			path = ScaleBridge;
 			sourceTree = "<group>";
@@ -266,6 +287,10 @@
 				Base,
 			);
 			mainGroup = AA0000000000000000000300A;
+			packageReferences = (
+				764D99912FEB2BCE0083696D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				764D99962FEB2BF30083696D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
 			productRefGroup = AA0000000000000000000312A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -289,6 +314,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA0000000000000000000201A /* Assets.xcassets in Resources */,
+				764D998F2FEB2A8E0083696D /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -318,6 +344,8 @@
 				AA000000000000000000010JA /* MetricRangeBar.swift in Sources */,
 				AA000000000000000000010KA /* GoalSettingSheet.swift in Sources */,
 				AA000000000000000000010LA /* SharedStore.swift in Sources */,
+				AA000000000000000000010MA /* CloudBackupManager.swift in Sources */,
+				AA000000000000000000010NA /* CloudBackupView.swift in Sources */,
 				AA0000000000000000000101A /* HealthKitWriter.swift in Sources */,
 				AA0000000000000000000102A /* HistoryView.swift in Sources */,
 				AA0000000000000000000103A /* ProfilesView.swift in Sources */,
@@ -533,6 +561,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = A5CX8H4MPQ;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ScaleBridge/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "ScaleBridge needs Bluetooth to connect to your body-composition scale.";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "ScaleBridge needs Bluetooth to connect to your body-composition scale.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "ScaleBridge reads body measurements from Apple Health.";
@@ -560,6 +589,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = A5CX8H4MPQ;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ScaleBridge/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "ScaleBridge needs Bluetooth to connect to your body-composition scale.";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "ScaleBridge needs Bluetooth to connect to your body-composition scale.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "ScaleBridge reads body measurements from Apple Health.";
@@ -609,6 +639,48 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		764D99912FEB2BCE0083696D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.15.0;
+			};
+		};
+		764D99962FEB2BF30083696D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		764D99922FEB2BCE0083696D /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 764D99912FEB2BCE0083696D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		764D99942FEB2BCE0083696D /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 764D99912FEB2BCE0083696D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		764D99972FEB2BF30083696D /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 764D99962FEB2BF30083696D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		764D99992FEB2BF30083696D /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 764D99962FEB2BF30083696D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AA0000000000000000000304A /* Project object */;
 }

@@ -256,6 +256,18 @@ extension View {
     func dsScreen() -> some View { modifier(ScreenBackground()) }
 }
 
+// MARK: - Google G logo
+
+struct GoogleGLogo: View {
+    var size: CGFloat = 24
+
+    var body: some View {
+        Image("google_g")
+            .resizable()
+            .frame(width: size, height: size)
+    }
+}
+
 // MARK: - Previews
 
 #Preview("Tokens") {

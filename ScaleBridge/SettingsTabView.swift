@@ -12,10 +12,13 @@ struct SettingsTabView: View {
     @AppStorage("heightUnit")      private var heightUnitRaw: String = HeightUnit.cm.rawValue
     @AppStorage("syncToHealthKit") private var syncToHealthKit: Bool = true
 
+    @Environment(CloudBackupManager.self) private var backup
+
     @State private var showingEraseAlert   = false
     @State private var editTarget: UserProfile? = nil
     @State private var showingLicenses     = false
     @State private var showingPrivacy      = false
+    @State private var showingCloudBackup  = false
 
     // MARK: Derived
 
@@ -42,30 +45,36 @@ struct SettingsTabView: View {
     // MARK: Body
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: DS.Space.l) {
-                navHeader
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: DS.Space.l) {
+                    navHeader
 
-                if let profile = activeProfile {
-                    activeProfileCard(profile)
-                }
+                    if let profile = activeProfile {
+                        activeProfileCard(profile)
+                    }
 
-                scaleSection
-                unitsSection
-                if activeProfile?.isPrimary == true {
-                    appleHealthSection
-                } else {
-                    nonPrimaryHealthNote
+                    scaleSection
+                    unitsSection
+                    if activeProfile?.isPrimary == true {
+                        appleHealthSection
+                    } else {
+                        nonPrimaryHealthNote
+                    }
+                    backupSection
+                    dataSection
+                    aboutSection
                 }
-                dataSection
-                aboutSection
+                .padding(.horizontal, DS.Space.screenGutter)
+                .padding(.top, DS.Space.m)
+                .padding(.bottom, 100)
             }
-            .padding(.horizontal, DS.Space.screenGutter)
-            .padding(.top, DS.Space.m)
-            .padding(.bottom, 100)
+            .background(DS.Palette.ground.ignoresSafeArea())
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(isPresented: $showingCloudBackup) {
+                CloudBackupView()
+            }
         }
-        .background(DS.Palette.ground.ignoresSafeArea())
-        .toolbar(.hidden, for: .navigationBar)
         .sheet(item: $editTarget) { profile in
             ProfileEditView(existingProfile: profile, isFirstProfile: false) { data in
                 commitProfileSave(data: data, updating: profile)
@@ -286,6 +295,38 @@ struct SettingsTabView: View {
             .padding(.horizontal, DS.Space.l)
             .frame(minHeight: 56)
             .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+    }
+
+    // MARK: - Backup section
+
+    private var backupSection: some View {
+        settingsSection("BACKUP") {
+            Button { showingCloudBackup = true } label: {
+                HStack(spacing: DS.Space.m) {
+                    Image(systemName: "icloud.and.arrow.up")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white)
+                        .frame(width: 32, height: 32)
+                        .background(Color.indigo,
+                                    in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    Text("Cloud Backup")
+                        .font(DS.Typeface.body)
+                        .foregroundStyle(DS.Palette.label)
+                    Spacer()
+                    Text(backup.isSignedIn ? backup.userEmail : "Not set up")
+                        .font(DS.Typeface.body)
+                        .foregroundStyle(DS.Palette.secondaryLabel)
+                        .lineLimit(1)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(DS.Palette.tertiaryLabel)
+                }
+                .padding(.horizontal, DS.Space.l)
+                .frame(minHeight: 56)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
         }
     }
 

@@ -4,8 +4,11 @@ import SwiftData
 struct OnboardingView: View {
 
     @Environment(\.modelContext) private var context
+    @Environment(CloudBackupManager.self) private var backup
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var showProfileSheet = false
+    @State private var isRestoring = false
+    @State private var restoreError: String? = nil
     private let healthKit = HealthKitWriter()
 
     var body: some View {
@@ -21,6 +24,14 @@ struct OnboardingView: View {
         }
         .background(DS.Palette.ground.ignoresSafeArea())
         .safeAreaInset(edge: .bottom) { bottomBar }
+        .alert("Restore Failed", isPresented: Binding(
+            get: { restoreError != nil },
+            set: { if !$0 { restoreError = nil } }
+        )) {
+            Button("OK") { restoreError = nil }
+        } message: {
+            Text(restoreError ?? "")
+        }
         .sheet(isPresented: $showProfileSheet) {
             ProfileEditView(existingProfile: nil, isFirstProfile: true) { data in
                 commitProfile(data)
@@ -102,30 +113,85 @@ struct OnboardingView: View {
 
     private var bottomBar: some View {
         VStack(spacing: DS.Space.s) {
-            Button {
-                showProfileSheet = true
-            } label: {
-                Text("Create your profile")
-                    .font(DS.Typeface.bodyMedium)
-                    .foregroundStyle(.white)
+            if isRestoring {
+                restoringState
+            } else {
+                Button {
+                    showProfileSheet = true
+                } label: {
+                    Text("Create your profile")
+                        .font(DS.Typeface.bodyMedium)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(DS.Palette.weight)
+                        )
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    startRestore()
+                } label: {
+                    HStack(spacing: 12) {
+                        GoogleGLogo(size: 22)
+                        Text("Restore from backup")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(Color(red: 0.235, green: 0.255, blue: 0.263))
+                    }
                     .frame(maxWidth: .infinity)
                     .frame(height: 54)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(DS.Palette.weight)
-                    )
-            }
-            .buttonStyle(.plain)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 27, style: .continuous))
+                    .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
+                }
+                .buttonStyle(.plain)
 
-            Text("Step 1 of 2 · We'll request Apple Health access next.")
-                .font(DS.Typeface.caption)
-                .foregroundStyle(DS.Palette.secondaryLabel)
-                .multilineTextAlignment(.center)
+                Text("Sign in with your Google account to restore all your profiles and readings from a previous device.")
+                    .font(DS.Typeface.caption)
+                    .foregroundStyle(DS.Palette.secondaryLabel)
+                    .multilineTextAlignment(.center)
+            }
         }
         .padding(.horizontal, DS.Space.screenGutter)
         .padding(.top, DS.Space.m)
         .padding(.bottom, DS.Space.l)
         .background(DS.Palette.ground.ignoresSafeArea(edges: .bottom))
+    }
+
+    private var restoringState: some View {
+        VStack(spacing: DS.Space.m) {
+            ProgressView()
+                .scaleEffect(1.3)
+            Text("Restoring your data…")
+                .font(DS.Typeface.bodyMedium)
+                .foregroundStyle(DS.Palette.label)
+            Text("This may take a moment.")
+                .font(DS.Typeface.caption)
+                .foregroundStyle(DS.Palette.secondaryLabel)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, DS.Space.l)
+    }
+
+    // MARK: - Restore
+
+    private func startRestore() {
+        Task {
+            isRestoring = true
+            defer { isRestoring = false }
+            do {
+                if !backup.isSignedIn {
+                    await backup.signIn()
+                }
+                guard backup.isSignedIn else { return }
+                try await backup.restore(into: context)
+                hasCompletedOnboarding = true
+            } catch {
+                restoreError = error.localizedDescription
+            }
+        }
     }
 
     // MARK: - Save

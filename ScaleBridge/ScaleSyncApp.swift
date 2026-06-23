@@ -1,9 +1,20 @@
 import SwiftUI
 import SwiftData
 import WidgetKit
+import FirebaseCore
+import GoogleSignIn
 
 @main
 struct ScaleSyncApp: App {
+
+    @State private var backupManager = CloudBackupManager()
+
+    init() {
+        FirebaseApp.configure()
+        if let clientID = FirebaseApp.app()?.options.clientID {
+            GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
+        }
+    }
 
     // Build the ModelContainer manually so we can recover from schema mismatches
     // that happen during development (e.g. adding/renaming model properties).
@@ -31,8 +42,14 @@ struct ScaleSyncApp: App {
     }()
 
     var body: some Scene {
-        WindowGroup { AppGate() }
-            .modelContainer(container)
+        WindowGroup {
+            AppGate()
+                .environment(backupManager)
+                .onOpenURL { url in
+                    GIDSignIn.sharedInstance.handle(url)
+                }
+        }
+        .modelContainer(container)
     }
 }
 

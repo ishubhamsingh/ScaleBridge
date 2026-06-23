@@ -35,6 +35,24 @@ final class WeighIn {
 
     // MARK: Init
 
+    init(
+        restoring id: UUID, date: Date, weightKg: Float, impedance: Float,
+        fatPercent: Float?, waterPercent: Float?, musclePercent: Float?,
+        bonePercent: Float?, bmi: Float?, syncedToHealthKit: Bool, user: UserProfile
+    ) {
+        self.id                = id
+        self.date              = date
+        self.weightKg          = weightKg
+        self.impedance         = impedance
+        self.fatPercent        = fatPercent
+        self.waterPercent      = waterPercent
+        self.musclePercent     = musclePercent
+        self.bonePercent       = bonePercent
+        self.bmi               = bmi
+        self.syncedToHealthKit = syncedToHealthKit
+        self.user              = user
+    }
+
     init(from measurement: ScaleMeasurement, user: UserProfile) {
         self.id            = UUID()
         self.date          = measurement.date

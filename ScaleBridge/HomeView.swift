@@ -21,11 +21,13 @@ struct HomeView: View {
 
     @EnvironmentObject private var router: TabRouter
 
-    @Environment(\.modelContext) private var context
+    @Environment(\.modelContext)      private var context
+    @Environment(CloudBackupManager.self) private var backup
     @Query(sort: \UserProfile.createdAt) private var profiles: [UserProfile]
     @AppStorage("activeUserID")    private var activeUserIDString: String = ""
     @AppStorage("syncToHealthKit") private var syncToHealthKit: Bool = true
     @AppStorage("weightUnit")      private var weightUnitRaw: String = "kg"
+    @AppStorage("heightUnit")      private var heightUnit: String = HeightUnit.cm.rawValue
 
     @State private var showingWeighIn      = false
     @State private var selectedMetric: BodyMetric? = nil
@@ -503,10 +505,24 @@ struct HomeView: View {
                     try? context.save()
                 }
                 WidgetCenter.shared.reloadAllTimelines()
+                triggerCloudUpload()
             }
         } else {
             try? context.save()
             WidgetCenter.shared.reloadAllTimelines()
+            triggerCloudUpload()
+        }
+    }
+
+    private func triggerCloudUpload() {
+        guard backup.isSignedIn else { return }
+        Task {
+            await backup.upload(
+                profiles: profiles,
+                weightUnit: weightUnitRaw,
+                heightUnit: heightUnit,
+                syncToHealthKit: syncToHealthKit
+            )
         }
     }
 }

@@ -1,6 +1,9 @@
 # Claude Code
 .claude/
 
+# Firebase — contains API_KEY and OAuth secrets, never commit to public repo
+ScaleBridge/GoogleService-Info.plist
+
 # Xcode
 *.xcuserstate
 *.xcuserdatad/
