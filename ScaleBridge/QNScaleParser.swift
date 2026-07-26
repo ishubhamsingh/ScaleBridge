@@ -177,12 +177,39 @@ final class QNScaleParser: ScaleParser {
     private var hasPublished = false
     private weak var transport: ScaleTransport?
 
+    // MARK: Publish policy
+    //
+    // A 0x10 frame's state byte goes 0 (ramping) -> 1 (weight locked) -> 2 (complete).
+    // Impedance is only filled in once the scale finishes its bioimpedance pass, so a
+    // state-1 frame can carry a settled-looking weight with r1 = 0. Publishing that
+    // first frame is what produced readings well below the scale's own display with
+    // impedance 0 — the later, correct frame was discarded by the `hasPublished` latch.
+    // So: publish immediately on a complete frame, otherwise hold the candidate and
+    // wait, falling back to a weight-only reading if impedance never arrives.
+
+    /// Consecutive state-1 frames whose weight agrees before we'll trust it.
+    private let settleFrameCount = 3
+    private let settleToleranceKg: Float = 0.1
+    /// How long to wait for impedance after the weight first locks.
+    private let weightOnlyFallbackDelay: TimeInterval = 3.0
+    /// Cap on deadline extensions when the weight is still drifting.
+    private let maxFallbackAttempts = 3
+
+    private var candidateWeightKg: Float?
+    private var candidateStableCount = 0
+    private var fallbackWorkItem: DispatchWorkItem?
+    private var fallbackAttempts = 0
+
     func onConnected(user: ScaleUser, transport: ScaleTransport) {
         self.transport = transport
         hasPublished = false
         weightScaleFactor = 100
         seenProtocolType = 0
         hasReceivedProtocolType = false
+        cancelFallback()
+        candidateWeightKg = nil
+        candidateStableCount = 0
+        fallbackAttempts = 0
         // Subscribe to whichever notify characteristics exist; missing ones are ignored.
         transport.setNotify(service: SVC_T1, characteristic: CHR_T1_NOTIFY)
         transport.setNotify(service: SVC_T2, characteristic: CHR_T2_NOTIFY)
@@ -218,27 +245,82 @@ final class QNScaleParser: ScaleParser {
     private func handleLiveWeight(_ b: [UInt8], user: ScaleUser) {
         guard b.count >= 10, !hasPublished else { return }
 
-        // ES-30M variant detection: byte[4] is a small stable flag and factor is /10.
+        // ES-30M variant detection: byte[4] is a small state flag and factor is /10.
         let isES30M = (Int(b[4]) <= 0x02) && weightScaleFactor == 10
-        let stable: Bool, raw: Float, r1: Float
+        let state: UInt8, raw: Float, r1: Float
 
         if isES30M, b.count >= 11 {
-            stable = b[4] == 0x01 || b[4] == 0x02
+            state = b[4]
             raw = Float(Bytes.u16be(b[5], b[6]))
             r1  = Float(Bytes.u16be(b[7], b[8]))
         } else {
-            stable = b[5] == 1
+            state = b[5]
             raw = Float(Bytes.u16be(b[3], b[4]))
             r1  = Float(Bytes.u16be(b[6], b[7]))
         }
-        guard stable else { return }
+
+        // 0 = still ramping. Anything above 2 isn't a weight state we understand.
+        guard state == 0x01 || state == 0x02 else { return }
 
         var weightKg = raw / weightScaleFactor
         if weightKg <= 5 || weightKg >= 250 { weightKg /= 10 }   // heuristic fallback
         guard weightKg > 0 else { return }
 
-        publish(weightKg: weightKg, r1: r1, user: user)
-        hasPublished = true
+        // A frame carrying impedance — or explicitly flagged complete — is the final
+        // word. This is the frame the old code threw away.
+        if r1 > 0 || state == 0x02 {
+            cancelFallback()
+            transport?.log("QN: complete frame (state=\(state) r1=\(r1)) — publishing")
+            publish(weightKg: weightKg, r1: r1, user: user)
+            hasPublished = true
+            return
+        }
+
+        // state 1 with no impedance yet: hold it, let the scale finish.
+        trackCandidate(weightKg, user: user)
+    }
+
+    /// Tracks a weight-locked frame while we wait for the bioimpedance pass.
+    private func trackCandidate(_ weightKg: Float, user: ScaleUser) {
+        if let previous = candidateWeightKg, abs(previous - weightKg) <= settleToleranceKg {
+            candidateStableCount += 1
+        } else {
+            candidateStableCount = 1
+        }
+        candidateWeightKg = weightKg
+
+        // Arm the deadline once, when the weight first locks.
+        if fallbackWorkItem == nil { scheduleFallback(user: user) }
+    }
+
+    /// If impedance never arrives, publish the settled weight on its own rather than
+    /// hanging — but never publish a weight that's still moving.
+    private func scheduleFallback(user: ScaleUser) {
+        let item = DispatchWorkItem { [weak self] in
+            guard let self, !self.hasPublished else { return }
+            self.fallbackWorkItem = nil
+            self.fallbackAttempts += 1
+
+            guard let weightKg = self.candidateWeightKg else { return }
+
+            if self.candidateStableCount >= self.settleFrameCount {
+                self.transport?.log("QN: no impedance after \(self.weightOnlyFallbackDelay)s — publishing weight-only \(weightKg)kg")
+                self.publish(weightKg: weightKg, r1: 0, user: user)
+                self.hasPublished = true
+            } else if self.fallbackAttempts < self.maxFallbackAttempts {
+                self.transport?.log("QN: weight still settling (\(self.candidateStableCount) frames) — extending")
+                self.scheduleFallback(user: user)
+            } else {
+                self.transport?.log("QN: gave up waiting for a settled weight")
+            }
+        }
+        fallbackWorkItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + weightOnlyFallbackDelay, execute: item)
+    }
+
+    private func cancelFallback() {
+        fallbackWorkItem?.cancel()
+        fallbackWorkItem = nil
     }
 
     private func publish(weightKg: Float, r1: Float, user: ScaleUser) {
@@ -247,6 +329,20 @@ final class QNScaleParser: ScaleParser {
         // and compresses QN values by ~18×, causing fat% to be ~6% too low.
         let z: Float = r1
         let lib = TrisaBodyComposition(isMale: user.isMale, ageYears: user.age, heightCm: user.heightCm)
+
+        // No impedance means the scale never completed its bioimpedance pass (bad foot
+        // contact, socks, or a reading cut short). The Trisa formulas would still return
+        // numbers for z = 0, but they'd be fiction. Publish what's genuinely measurable:
+        // weight, plus the metrics that need only weight and height.
+        guard r1 > 0 else {
+            var m = ScaleMeasurement(weightKg: weightKg, impedance: 0)
+            m.bmi              = lib.bmi(weightKg)
+            m.standardWeightKg = lib.standardWeight()
+            m.weightControlKg  = lib.weightControl(weightKg)
+            transport?.log("QN: publish weight-only \(weightKg)kg (no impedance — body composition skipped)")
+            onMeasurement?(m)
+            return
+        }
 
         let fatPct    = lib.fat(weightKg, z)
         let musclePct = lib.muscle(weightKg, z)
