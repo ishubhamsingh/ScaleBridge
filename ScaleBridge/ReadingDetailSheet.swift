@@ -14,6 +14,8 @@ struct ReadingDetailSheet: View {
 
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss)      private var dismiss
+    @Environment(CloudBackupManager.self) private var backup
+    private let healthKit = HealthKitWriter.shared
 
     @State private var showingDeleteConfirm = false
 
@@ -270,8 +272,21 @@ struct ReadingDetailSheet: View {
     }
 
     private func deleteReading() {
+        // Capture what the async cleanup needs before the object leaves the store.
+        let id = weighIn.id
+        let date = weighIn.date
+        let wasSynced = weighIn.syncedToHealthKit
+
         context.delete(weighIn)
         try? context.save()
+
+        // Local delete is the source of truth; the copies follow. Detached so the
+        // sheet dismisses immediately and network latency isn't in the user's way.
+        Task {
+            if wasSynced { await healthKit.deleteSamples(around: date) }
+            await backup.deleteWeighIns(ids: [id])
+        }
+
         dismiss()
     }
 }

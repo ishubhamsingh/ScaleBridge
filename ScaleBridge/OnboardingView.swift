@@ -9,7 +9,7 @@ struct OnboardingView: View {
     @State private var showProfileSheet = false
     @State private var isRestoring = false
     @State private var restoreError: String? = nil
-    private let healthKit = HealthKitWriter()
+    private let healthKit = HealthKitWriter.shared
 
     var body: some View {
         ScrollView {
@@ -207,7 +207,7 @@ struct OnboardingView: View {
         ))
         try? context.save()
         Task {
-            try? await healthKit.requestAuthorization()
+            await healthKit.requestAuthorization()
             hasCompletedOnboarding = true
         }
     }

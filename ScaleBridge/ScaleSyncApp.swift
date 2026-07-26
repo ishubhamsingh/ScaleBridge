@@ -117,7 +117,7 @@ struct ContentView: View {
         parser: QNScaleParser(),
         user: ScaleUser(isMale: true, age: 30, heightCm: 175, usePounds: false)
     )
-    private let healthKit = HealthKitWriter()
+    private let healthKit = HealthKitWriter.shared
 
     @Environment(\.modelContext) private var context
 
@@ -178,7 +178,7 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingProfiles) { ProfilesView() }
             .sheet(isPresented: $showingUserPicker) { userPickerSheet }
-            .task { try? await healthKit.requestAuthorization() }
+            .task { await healthKit.requestAuthorization() }
             .onChange(of: ble.status) { _, newStatus in
                 if case .done = newStatus, let measurement = ble.lastMeasurement {
                     persistMeasurement(measurement)
@@ -271,7 +271,7 @@ struct ContentView: View {
 
     private var logSection: some View {
         Section("Diagnostic log") {
-            ForEach(ble.logLines.suffix(40), id: \.self) {
+            ForEach(ScaleDiagnosticsLog.shared.lines.suffix(40), id: \.self) {
                 Text($0).font(.system(.caption2, design: .monospaced))
             }
         }

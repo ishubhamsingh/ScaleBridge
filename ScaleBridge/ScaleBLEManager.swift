@@ -4,6 +4,32 @@ import Combine
 import AudioToolbox
 import UIKit
 
+/// Frame-level diagnostic log, kept outside the BLE manager so Settings can read it
+/// without owning the manager (they live in different tabs).
+///
+/// Every notification is logged as hex here — this is what identifies a protocol
+/// problem from a real reading, and it's the only record of what the scale actually
+/// sent once a session ends.
+@MainActor
+@Observable
+final class ScaleDiagnosticsLog {
+    static let shared = ScaleDiagnosticsLog()
+
+    private static let maxLines = 300
+    private(set) var lines: [String] = []
+
+    func append(_ message: String) {
+        let stamped = "[\(Date().formatted(date: .omitted, time: .standard))] \(message)"
+        lines.append(stamped)
+        if lines.count > Self.maxLines { lines.removeFirst(lines.count - Self.maxLines) }
+        print(stamped)
+    }
+
+    func clear() { lines.removeAll() }
+
+    var exportText: String { lines.joined(separator: "\n") }
+}
+
 /// Owns CoreBluetooth, drives the parser, and surfaces state to SwiftUI.
 /// Also acts as the parser's `ScaleTransport`.
 @MainActor
@@ -15,7 +41,6 @@ final class ScaleBLEManager: NSObject, ObservableObject {
 
     @Published var status: Status = .idle
     @Published var lastMeasurement: ScaleMeasurement?
-    @Published var logLines: [String] = []
     /// The advertised name + service UUIDs of the first matching device we see.
     /// THIS is your diagnostic: read it to confirm which openScale handler applies.
     @Published var discoveredName: String = ""
@@ -45,6 +70,10 @@ final class ScaleBLEManager: NSObject, ObservableObject {
             status = .error("Bluetooth not ready")
             return
         }
+        // Drop any connection left over from a previous weigh-in. A stale link means
+        // the parser never sees `onConnected`, so its per-session state (including the
+        // publish latch) is never reset and notifications resume mid-stream.
+        teardownConnection()
         lastMeasurement = nil
         status = .scanning
         log("Scanning…")
@@ -55,10 +84,15 @@ final class ScaleBLEManager: NSObject, ObservableObject {
 
     func stop() {
         central.stopScan()
+        teardownConnection()
+        status = .idle
+    }
+
+    /// Drops the peripheral without touching `status` — callers own the state machine.
+    private func teardownConnection() {
         if let p = peripheral { central.cancelPeripheralConnection(p) }
         peripheral = nil
         characteristics = [:]
-        status = .idle
     }
 
     private func handleMeasurement(_ m: ScaleMeasurement) {
@@ -67,17 +101,22 @@ final class ScaleBLEManager: NSObject, ObservableObject {
         status = .done
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         AudioServicesPlaySystemSound(1057)
-        log(String(format: "Reading: %.2f kg, fat %.1f%%", m.weightKg, m.fatPercent ?? 0))
+        if let fat = m.fatPercent {
+            log(String(format: "Reading: %.2f kg, fat %.1f%%", m.weightKg, fat))
+        } else {
+            log(String(format: "Reading: %.2f kg (weight only — no impedance)", m.weightKg))
+        }
         central.stopScan()
+        // Release the scale so the next weigh-in starts a fresh session rather than
+        // resuming on a half-finished one.
+        teardownConnection()
         // HealthKit write + SwiftData persistence are handled in ContentView
         // via .onChange(of: status) so they have access to the active UserProfile
         // and the SwiftData ModelContext.
     }
 
     func log(_ s: String) {
-        let line = "[\(Date().formatted(date: .omitted, time: .standard))] \(s)"
-        logLines.append(line)
-        print(line)
+        ScaleDiagnosticsLog.shared.append(s)
     }
 }
 

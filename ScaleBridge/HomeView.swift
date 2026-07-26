@@ -17,7 +17,7 @@ struct HomeView: View {
         parser: QNScaleParser(),
         user: ScaleUser(isMale: true, age: 30, heightCm: 175, usePounds: false)
     )
-    private let healthKit = HealthKitWriter()
+    private let healthKit = HealthKitWriter.shared
 
     @EnvironmentObject private var router: TabRouter
 
@@ -85,7 +85,13 @@ struct HomeView: View {
             UserSwitcherSheet()
                 .presentationDetents([.medium, .large])
         }
-        .task { try? await healthKit.requestAuthorization() }
+        .task {
+            healthKit.refreshStatus()
+            // Only prompt when we've never successfully asked; iOS shows the sheet once.
+            if healthKit.status == .notDetermined {
+                await healthKit.requestAuthorization()
+            }
+        }
         .onAppear {
             if let latest = latestWeighIn { SharedStore.write(weighIn: latest) }
             if let profile = activeProfile { SharedStore.writeProfileMeta(isMale: profile.isMale) }
@@ -502,6 +508,8 @@ struct HomeView: View {
                     weighIn.syncedToHealthKit = true
                     try? context.save()
                 } catch {
+                    // Keep the local record, but don't hide why Health didn't get it —
+                    // `healthKit.lastError` is shown in Settings › Apple Health.
                     try? context.save()
                 }
                 WidgetCenter.shared.reloadAllTimelines()

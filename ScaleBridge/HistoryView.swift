@@ -11,6 +11,8 @@ struct HistoryView: View {
     let profile: UserProfile
 
     @Environment(\.modelContext) private var context
+    @Environment(CloudBackupManager.self) private var backup
+    private let healthKit = HealthKitWriter.shared
     @State private var selectedWeighIn: WeighIn? = nil
     @State private var isEditing = false
     @State private var selectedIDs: Set<UUID> = []
@@ -403,15 +405,21 @@ struct HistoryView: View {
                 .foregroundStyle(DS.Palette.label)
             Spacer()
             Button {
+                let doomed = allWeighIns.filter { selectedIDs.contains($0.id) }
+                // Capture before deletion — these objects are about to leave the store.
+                let ids = doomed.map(\.id)
+                let healthDates = doomed.filter(\.syncedToHealthKit).map(\.date)
+
                 withAnimation {
-                    for id in selectedIDs {
-                        if let w = allWeighIns.first(where: { $0.id == id }) {
-                            context.delete(w)
-                        }
-                    }
+                    for w in doomed { context.delete(w) }
                     try? context.save()
                     selectedIDs.removeAll()
                     isEditing = false
+                }
+
+                Task {
+                    for date in healthDates { await healthKit.deleteSamples(around: date) }
+                    await backup.deleteWeighIns(ids: ids)
                 }
             } label: {
                 HStack(spacing: DS.Space.xs) {

@@ -23,6 +23,20 @@ final class CloudBackupManager {
 
     private let db = Firestore.firestore()
 
+    /// Weigh-in IDs deleted locally but not yet removed from Firestore.
+    ///
+    /// Deletes can happen while signed out or offline, and `upload()` is additive —
+    /// it only ever writes the records that still exist locally, so without these
+    /// tombstones a deleted reading survives in the cloud and comes back on restore.
+    /// Kept as explicit tombstones rather than diffing cloud against local, because a
+    /// diff run before a restore (fresh install, empty local store) would read as
+    /// "everything was deleted" and wipe the user's backup.
+    private var pendingDeletions: [String] {
+        get { UserDefaults.standard.stringArray(forKey: Self.pendingDeletionsKey) ?? [] }
+        set { UserDefaults.standard.set(newValue, forKey: Self.pendingDeletionsKey) }
+    }
+    private static let pendingDeletionsKey = "cloudPendingWeighInDeletions"
+
     // MARK: Init
 
     init() {
@@ -75,6 +89,45 @@ final class CloudBackupManager {
         }
     }
 
+    // MARK: Delete weigh-ins (local delete → Firestore)
+
+    /// Removes deleted readings from the cloud copy.
+    ///
+    /// Always records the tombstones first, so a failure here (offline, signed out,
+    /// permission error) is retried on the next sync instead of silently leaving the
+    /// record in Firestore to be resurrected by `restore()`.
+    func deleteWeighIns(ids: [UUID]) async {
+        guard !ids.isEmpty else { return }
+        enqueuePendingDeletions(ids.map(\.uuidString))
+
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        do {
+            try await flushPendingDeletions(userRef: db.collection("users").document(uid))
+        } catch {
+            syncError = error.localizedDescription
+        }
+    }
+
+    private func enqueuePendingDeletions(_ idStrings: [String]) {
+        var queue = pendingDeletions
+        for id in idStrings where !queue.contains(id) { queue.append(id) }
+        pendingDeletions = queue
+    }
+
+    /// Deletes queued documents one at a time, persisting progress so a mid-way
+    /// failure doesn't lose the remaining tombstones. Firestore deletes are
+    /// idempotent, so re-running is safe.
+    private func flushPendingDeletions(userRef: DocumentReference) async throws {
+        var remaining = pendingDeletions
+        guard !remaining.isEmpty else { return }
+
+        for idStr in pendingDeletions {
+            try await userRef.collection("weigh_ins").document(idStr).delete()
+            remaining.removeAll { $0 == idStr }
+            pendingDeletions = remaining
+        }
+    }
+
     // MARK: Upload (local → Firestore)
 
     func upload(profiles: [UserProfile], weightUnit: String, heightUnit: String, syncToHealthKit: Bool) async {
@@ -85,6 +138,10 @@ final class CloudBackupManager {
 
         do {
             let userRef = db.collection("users").document(uid)
+
+            // Clear anything deleted while offline or signed out before re-uploading,
+            // otherwise those records linger in the cloud.
+            try await flushPendingDeletions(userRef: userRef)
 
             try await userRef.collection("settings").document("app").setData([
                 "weightUnit": weightUnit,
@@ -147,9 +204,17 @@ final class CloudBackupManager {
 
         let userRef = db.collection("users").document(uid)
 
+        // Restore is a merge, not an import: reuse what's already here and skip
+        // anything we already have, so restoring onto a device with existing data
+        // doesn't duplicate every profile and reading.
+        let existingProfiles  = (try? context.fetch(FetchDescriptor<UserProfile>())) ?? []
+        let existingWeighInIDs = Set(((try? context.fetch(FetchDescriptor<WeighIn>())) ?? []).map(\.id))
+        let tombstoned = Set(pendingDeletions)
+
         // Profiles
         let profilesSnap = try await userRef.collection("profiles").getDocuments()
         var profileMap: [String: UserProfile] = [:]
+        for p in existingProfiles { profileMap[p.id.uuidString] = p }
 
         for doc in profilesSnap.documents {
             let d = doc.data()
@@ -163,6 +228,9 @@ final class CloudBackupManager {
                 let avatar    = d["avatar"]       as? String,
                 let createdT  = d["createdAt"]    as? Double
             else { continue }
+
+            // Already present locally — keep the local copy, don't insert a duplicate.
+            if profileMap[idStr] != nil { continue }
 
             let profile = UserProfile(
                 name: name, isMale: isMale,
@@ -189,6 +257,10 @@ final class CloudBackupManager {
                 let weightKg    = d["weightKg"]   as? Double,
                 let impedance   = d["impedance"]  as? Double
             else { continue }
+
+            // Skip records we already hold, and any the user deleted locally while
+            // the cloud copy hadn't caught up yet — restoring must not resurrect them.
+            if existingWeighInIDs.contains(id) || tombstoned.contains(idStr) { continue }
 
             let w = WeighIn(
                 restoring: id,

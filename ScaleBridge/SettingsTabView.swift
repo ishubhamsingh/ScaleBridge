@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct SettingsTabView: View {
 
@@ -13,12 +14,14 @@ struct SettingsTabView: View {
     @AppStorage("syncToHealthKit") private var syncToHealthKit: Bool = true
 
     @Environment(CloudBackupManager.self) private var backup
+    private let healthKit = HealthKitWriter.shared
 
     @State private var showingEraseAlert   = false
     @State private var editTarget: UserProfile? = nil
     @State private var showingLicenses     = false
     @State private var showingPrivacy      = false
     @State private var showingCloudBackup  = false
+    @State private var showingDiagnostics  = false
 
     // MARK: Derived
 
@@ -74,6 +77,10 @@ struct SettingsTabView: View {
             .navigationDestination(isPresented: $showingCloudBackup) {
                 CloudBackupView()
             }
+            .navigationDestination(isPresented: $showingDiagnostics) {
+                DiagnosticLogView()
+            }
+            .task { healthKit.refreshStatus() }
         }
         .sheet(item: $editTarget) { profile in
             ProfileEditView(existingProfile: profile, isFirstProfile: false) { data in
@@ -216,6 +223,37 @@ struct SettingsTabView: View {
         }
     }
 
+    // MARK: - Apple Health status
+
+    private var healthStatusLabel: String {
+        switch healthKit.status {
+        case .unknown:       return "Checking…"
+        case .unavailable:   return "Unavailable"
+        case .notDetermined: return "Not asked"
+        case .authorized:    return "Allowed"
+        case .partial:       return "Partial"
+        case .denied:        return "Denied"
+        }
+    }
+
+    private var healthStatusColor: Color {
+        switch healthKit.status {
+        case .authorized:              return DS.Palette.positive
+        case .partial:                 return DS.Palette.bodyFat
+        case .denied, .unavailable:    return DS.Palette.muscle
+        case .unknown, .notDetermined: return DS.Palette.secondaryLabel
+        }
+    }
+
+    private var healthStatusIcon: String {
+        switch healthKit.status {
+        case .authorized:              return "checkmark.circle.fill"
+        case .partial:                 return "exclamationmark.circle.fill"
+        case .denied, .unavailable:    return "xmark.circle.fill"
+        case .unknown, .notDetermined: return "questionmark.circle.fill"
+        }
+    }
+
     // MARK: - Apple Health section
 
     private var appleHealthSection: some View {
@@ -236,6 +274,40 @@ struct SettingsTabView: View {
                     Spacer()
                     Toggle("", isOn: $syncToHealthKit)
                         .labelsHidden()
+                }
+                .padding(.horizontal, DS.Space.l)
+                .frame(minHeight: 52)
+                .onChange(of: syncToHealthKit) { _, isOn in
+                    // Turning the switch on is the user asking for Health access —
+                    // it has to actually request it, not just record a preference.
+                    guard isOn else { return }
+                    Task { await healthKit.requestAuthorization() }
+                }
+
+                rowDivider()
+
+                // Permission status
+                HStack(spacing: DS.Space.m) {
+                    Image(systemName: healthStatusIcon)
+                        .font(.system(size: 14))
+                        .foregroundStyle(healthStatusColor)
+                        .frame(width: 32, height: 32)
+                        .background(DS.Palette.ground, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Permission")
+                            .font(DS.Typeface.body)
+                            .foregroundStyle(DS.Palette.label)
+                        if let err = healthKit.lastError {
+                            Text(err)
+                                .font(DS.Typeface.caption)
+                                .foregroundStyle(DS.Palette.muscle)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    Spacer()
+                    Text(healthStatusLabel)
+                        .font(DS.Typeface.subheadline)
+                        .foregroundStyle(healthStatusColor)
                 }
                 .padding(.horizontal, DS.Space.l)
                 .frame(minHeight: 52)
@@ -332,6 +404,27 @@ struct SettingsTabView: View {
 
     // MARK: - Data section
 
+    private var diagnosticsRow: some View {
+        Button { showingDiagnostics = true } label: {
+            HStack {
+                Text("Scale diagnostic log")
+                    .font(DS.Typeface.body)
+                    .foregroundStyle(DS.Palette.weight)
+                Spacer()
+                Text("\(ScaleDiagnosticsLog.shared.lines.count)")
+                    .font(DS.Typeface.body)
+                    .foregroundStyle(DS.Palette.secondaryLabel)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(DS.Palette.tertiaryLabel)
+            }
+            .padding(.horizontal, DS.Space.l)
+            .frame(minHeight: 50)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
     private var dataSection: some View {
         settingsSection("DATA") {
             // Export CSV — temp .csv URL so share sheet offers CSV, not plain text
@@ -350,6 +443,10 @@ struct SettingsTabView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+
+            rowDivider()
+
+            diagnosticsRow
 
             rowDivider()
 
@@ -496,10 +593,20 @@ struct SettingsTabView: View {
     }
 
     private func eraseAllData() {
-        for profile in profiles {
-            for w in profile.weighIns { context.delete(w) }
-        }
+        let doomed = profiles.flatMap(\.weighIns)
+        // Capture before deletion — these objects are about to leave the store.
+        let ids = doomed.map(\.id)
+        let healthDates = doomed.filter(\.syncedToHealthKit).map(\.date)
+
+        for w in doomed { context.delete(w) }
         try? context.save()
+
+        // The alert promises this can't be undone, so the cloud copy has to go too —
+        // otherwise a later restore brings every reading back.
+        Task {
+            for date in healthDates { await healthKit.deleteSamples(around: date) }
+            await backup.deleteWeighIns(ids: ids)
+        }
     }
 
     private func commitProfileSave(data: ProfileFormData, updating profile: UserProfile) {
@@ -645,5 +752,86 @@ private struct PrivacyPolicyView: View {
         }
         .padding(DS.Space.cardPaddingHero)
         .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+}
+
+// MARK: - Diagnostic log
+//
+// Frame-level view of the last BLE session. This is what distinguishes a protocol
+// problem from a genuine reading — without it, a silent misparse looks identical
+// to a scale that simply measured you wrong.
+
+struct DiagnosticLogView: View {
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var copied = false
+
+    private var log: ScaleDiagnosticsLog { ScaleDiagnosticsLog.shared }
+
+    var body: some View {
+        ScrollView {
+            if log.lines.isEmpty {
+                VStack(spacing: DS.Space.s) {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .font(.system(size: 32))
+                        .foregroundStyle(DS.Palette.tertiaryLabel)
+                    Text("No entries yet")
+                        .font(DS.Typeface.body)
+                        .foregroundStyle(DS.Palette.secondaryLabel)
+                    Text("Weigh in once, then come back here to see the frames the scale sent.")
+                        .font(DS.Typeface.caption)
+                        .foregroundStyle(DS.Palette.tertiaryLabel)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 80)
+                .padding(.horizontal, DS.Space.xl)
+            } else {
+                VStack(alignment: .leading, spacing: DS.Space.xs) {
+                    ForEach(Array(log.lines.enumerated()), id: \.offset) { _, line in
+                        Text(line)
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundStyle(DS.Palette.label)
+                            .textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(DS.Space.l)
+                .background(DS.Palette.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .padding(.horizontal, DS.Space.screenGutter)
+                .padding(.vertical, DS.Space.m)
+            }
+        }
+        .background(DS.Palette.ground.ignoresSafeArea())
+        .navigationTitle("Diagnostic Log")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button {
+                        UIPasteboard.general.string = log.exportText
+                        copied = true
+                    } label: {
+                        Label("Copy log", systemImage: "doc.on.doc")
+                    }
+                    .disabled(log.lines.isEmpty)
+
+                    Button(role: .destructive) {
+                        log.clear()
+                    } label: {
+                        Label("Clear", systemImage: "trash")
+                    }
+                    .disabled(log.lines.isEmpty)
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
+        }
+        .alert("Copied", isPresented: $copied) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("The diagnostic log is on your clipboard.")
+        }
     }
 }
