@@ -18,9 +18,10 @@ Step on your scale — ScaleBridge captures weight, body fat, muscle, water, BMI
 ## Features
 
 - **Bluetooth pairing** — auto-connects to QN/Yolanda smart scales (the same hardware used by many white-label apps)
-- **Full body composition** — 16 metrics: weight, body fat, muscle %, water %, BMI, lean mass, bone, protein, skeletal muscle, subcutaneous fat, visceral fat, muscle mass, BMR, metabolic age, health score, obesity degree
+- **Full body composition** — 22 metrics: weight, body fat, muscle %, water %, BMI, lean mass, bone, muscle mass, protein, skeletal muscle, subcutaneous fat, visceral fat, mineral salt, BMR, metabolic age, health score, obesity degree, best visual weight, standard weight, weight control, fat control, muscle control
 - **Apple Health sync** — primary profile's readings flow into HealthKit automatically
 - **Multi-profile** — add a profile for each family member; the app logs to the right person based on weight
+- **Google cloud backup** — sign in with Google to back up profiles, readings, and settings to Firestore; syncs automatically after each weigh-in and restores everything on a new device
 - **Range gauge** — each metric shows a Low / Normal / High / Very High band with a goal hint ("Decrease by 4.3% to reach normal")
 - **Trend charts** — history view with per-metric charts across W / M / 6M / Y / All ranges
 - **iOS 26 design** — Liquid Glass tab bar, native system colors, SF Symbols throughout
@@ -36,7 +37,8 @@ Step on your scale — ScaleBridge captures weight, body fat, muscle, water, BMI
 1. Clone the repo
 2. Open `ScaleBridge.xcodeproj` in Xcode
 3. Select your device as the build target (Bluetooth requires a real device)
-4. Build & run — no third-party dependencies, no package manager needed
+4. Add a `GoogleService-Info.plist` from your own Firebase project
+5. Build & run — SPM resolves Firebase and GoogleSignIn automatically
 
 ## Body Composition Algorithms
 
